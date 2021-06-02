@@ -22,5 +22,5 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation("io.insert-koin:koin-core:$koinVersion")
     implementation(project(":koin-annotations"))
-//    ksp(project(":test-processor"))
+    ksp(project(":koin-compiler"))
 }

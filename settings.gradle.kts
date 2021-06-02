@@ -14,6 +14,6 @@ pluginManagement {
 rootProject.name = "playground"
 
 //include(":workload")
-include(":test-processor")
 include(":koin-annotations")
+include(":koin-compiler")
 include(":coffee-maker")

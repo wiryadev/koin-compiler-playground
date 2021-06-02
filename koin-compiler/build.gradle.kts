@@ -14,7 +14,8 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("com.squareup:javapoet:1.12.1")
+//    implementation("com.squareup:javapoet:1.12.1")
+    implementation(project(":koin-annotations"))
     implementation("com.google.devtools.ksp:symbol-processing-api:$kspVersion")
 }
 
