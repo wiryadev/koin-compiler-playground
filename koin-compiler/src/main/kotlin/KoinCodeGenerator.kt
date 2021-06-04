@@ -58,7 +58,6 @@ class KoinCodeGenerator(
     private fun generateModule(module: KoinMetaData.Module) {
         logger.warn("generate $module")
         getDefaultFile().apply {
-            appendText("\n// module - ${module.packageName} : $module")
             val packageName = if (module.packageName.isNotBlank()) "${module.packageName}." else ""
             appendText("\n\t $packageName${module.fieldName}.apply {")
             module.definitions.forEach { def ->
@@ -70,8 +69,17 @@ class KoinCodeGenerator(
     }
 
     private fun generateDefinition(def: KoinMetaData.Definition) {
-        val file = getDefaultFile()
-        file.appendText("\n// def - ${def.packageName} : ${def.className}")
+        getDefaultFile().apply {
+            val param = if (def.constructorParameters.filter { it.type == KoinMetaData.ConstructorParameterType.PARAMETER_INJECT }.isEmpty()) "" else " params ->"
+            val ctor = generateConstructor(def.constructorParameters)
+            appendText("\n\t\t${def.keyword} { $param${def.packageName}.${def.className}$ctor }")
+        }
+    }
+
+    private fun generateConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
+        return constructorParameters.joinToString(prefix = "(", separator = ",", postfix = ")") {
+            if (it.type == KoinMetaData.ConstructorParameterType.DEPENDENCY) "get()" else "params.get()"
+        }
     }
 
     private fun getDefaultFile() = codeGenerator.createNewFile(

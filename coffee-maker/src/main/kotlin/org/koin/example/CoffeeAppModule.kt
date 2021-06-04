@@ -1,4 +1,4 @@
-package org.koin.example.test
+package org.koin.example
 
 import org.koin.core.annotation.ComponentScan
 import org.koin.dsl.module

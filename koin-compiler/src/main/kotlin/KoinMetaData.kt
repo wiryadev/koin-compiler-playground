@@ -13,7 +13,8 @@ sealed class KoinMetaData {
         val packageName: String,
         val className: String,
         val constructorParameters: List<ConstructorParameter> = emptyList(),
-        val bindings: List<KSTypeReference>
+        val bindings: List<KSTypeReference>,
+        val keyword : String
     ) : KoinMetaData() {
 
         class Single(
@@ -21,7 +22,7 @@ sealed class KoinMetaData {
             className: String,
             constructorParameters: List<ConstructorParameter> = emptyList(),
             bindings: List<KSTypeReference>
-        ) : Definition(packageName, className, constructorParameters, bindings)
+        ) : Definition(packageName, className, constructorParameters, bindings, "single")
     }
 
     data class ConstructorParameter(
