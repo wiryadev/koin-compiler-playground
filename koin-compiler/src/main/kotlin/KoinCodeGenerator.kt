@@ -21,7 +21,7 @@ class KoinCodeGenerator(
         
         val defaultModule = module {}
     
-        fun KoinApplication.scanModules(modules : List<Module> = listOf(), useDefaultModule : Boolean = true) {
+        fun KoinApplication.componentScan(modules : List<Module> = listOf(), useDefaultModule : Boolean = true) {
     """.trimIndent()
 
     val allModulesFooter = """

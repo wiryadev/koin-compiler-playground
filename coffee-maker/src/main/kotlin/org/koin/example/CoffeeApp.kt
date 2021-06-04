@@ -4,7 +4,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.koin.core.context.startKoin
 import org.koin.core.time.measureDuration
-import org.koin.ksp.generated.scanModules
+import org.koin.ksp.generated.componentScan
 
 class CoffeeApp : KoinComponent {
     val maker: CoffeeMaker by inject()
@@ -13,7 +13,9 @@ class CoffeeApp : KoinComponent {
 fun main() {
     startKoin {
         printLogger()
-        scanModules()
+        componentScan(
+            modules = listOf(otherModule)
+        )
     }
 
     val coffeeShop = CoffeeApp()
