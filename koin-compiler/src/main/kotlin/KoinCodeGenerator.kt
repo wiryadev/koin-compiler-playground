@@ -36,16 +36,26 @@ class KoinCodeGenerator(
 
     fun generate(moduleMap: Map<String, KoinMetaData.Module>, defaultModule: KoinMetaData.Module) {
         logger.warn("generate ...")
-        moduleMap.values.forEachIndexed { index, module ->
-            if (index == 0) {
-                val file = getDefaultFile()
-                file.appendText(allModulesHeader)
-            }
-            generateModule(module)
-            if (index == moduleMap.values.size - 1) {
-                generateDefaultModule(defaultModule)
-                val file = getDefaultFile()
-                file.appendText("\n" + allModulesFooter)
+        generateModules(moduleMap, defaultModule)
+    }
+
+    private fun generateModules(
+        moduleMap: Map<String, KoinMetaData.Module>,
+        defaultModule: KoinMetaData.Module
+    ) {
+        if (moduleMap.isEmpty()){
+        } else {
+            moduleMap.values.forEachIndexed { index, module ->
+                if (index == 0) {
+                    val file = getDefaultFile()
+                    file.appendText(allModulesHeader)
+                }
+                generateModule(module)
+                if (index == moduleMap.values.size - 1) {
+                    generateDefaultModule(defaultModule)
+                    val file = getDefaultFile()
+                    file.appendText("\n" + allModulesFooter)
+                }
             }
         }
     }
