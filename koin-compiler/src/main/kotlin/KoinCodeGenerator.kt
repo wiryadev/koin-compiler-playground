@@ -36,36 +36,37 @@ class KoinCodeGenerator(
     fun generate(moduleMap: Map<String, KoinMetaData.Module>, defaultModule: KoinMetaData.Module) {
         logger.warn("generate ...")
         moduleMap.values.forEachIndexed { index, module ->
-            if (index == 0){
+            if (index == 0) {
                 val file = getDefaultFile()
                 file.appendText(allModulesHeader)
             }
             generateModule(module)
-            if (index == moduleMap.values.size -1){
+            if (index == moduleMap.values.size - 1) {
                 generateDefaultModule(defaultModule)
                 val file = getDefaultFile()
-                file.appendText("\n"+allModulesFooter)
+                file.appendText("\n" + allModulesFooter)
             }
         }
     }
 
     private fun generateDefaultModule(defaultModule: KoinMetaData.Module) {
         val file = getDefaultFile()
-        file.appendText("\n\t\t"+defaultModuleGen)
+        file.appendText("\n\t\t" + defaultModuleGen)
         generateModule(defaultModule)
     }
 
     private fun generateModule(module: KoinMetaData.Module) {
         logger.warn("generate $module")
-        val file = getDefaultFile()
-        file.appendText("\n// module - ${module.packageName} : $module")
-        val packageName = if (module.packageName.isNotBlank()) "${module.packageName}." else ""
-        file.appendText("\n\t $packageName${module.fieldName}.apply {")
-        module.definitions.forEach { def ->
-            logger.warn("generate $def")
-            generateDefinition(def)
+        getDefaultFile().apply {
+            appendText("\n// module - ${module.packageName} : $module")
+            val packageName = if (module.packageName.isNotBlank()) "${module.packageName}." else ""
+            appendText("\n\t $packageName${module.fieldName}.apply {")
+            module.definitions.forEach { def ->
+                logger.warn("generate $def")
+                generateDefinition(def)
+            }
+            appendText("\n\t}")
         }
-        file.appendText("\n\t}")
     }
 
     private fun generateDefinition(def: KoinMetaData.Definition) {
