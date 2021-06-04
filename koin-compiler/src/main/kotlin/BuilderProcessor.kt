@@ -22,8 +22,12 @@ class BuilderProcessor(
             packageName = "",
             fieldName = "defaultModule"
         )
-        val moduleMap = koinMetaDataScanner.scanMetaData(resolver,defaultModule)
-        koinCodeGenerator.generate(moduleMap, defaultModule)
+        val (moduleMap,definitions) = koinMetaDataScanner.scanMetaData(resolver,defaultModule)
+        if (moduleMap.isNotEmpty()){
+            koinCodeGenerator.generateModules(moduleMap, defaultModule)
+        } else {
+            koinCodeGenerator.generateDefinitions(definitions)
+        }
         return emptyList()
     }
 }

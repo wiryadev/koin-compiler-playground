@@ -10,5 +10,5 @@ import org.koin.dsl.module
 //     single<ElectricHeater>() bind Heater::class
 // }
 
-@ComponentScan
+//@ComponentScan
 val otherModule = module { }

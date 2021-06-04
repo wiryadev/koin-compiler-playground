@@ -1,6 +1,7 @@
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
+import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSDeclaration
 import java.io.OutputStream
 
@@ -17,8 +18,10 @@ class KoinCodeGenerator(
         import org.koin.dsl.module
         import org.koin.dsl.bind
         import org.koin.dsl.binds
+        
+        val defaultModule = module {}
     
-        fun KoinApplication.allModules(modules : List<Module> = emptyList(), useDefaultModule : Boolean = true) {
+        fun KoinApplication.scanModules(modules : List<Module> = listOf(), useDefaultModule : Boolean = true) {
     """.trimIndent()
 
     val allModulesFooter = """
@@ -30,40 +33,49 @@ class KoinCodeGenerator(
         }
     """.trimIndent()
 
-    val defaultModuleGen = """
-        val defaultModule = Module()
+    val defaultModuleApply = """
+            defaultModule.apply {
     """.trimIndent()
 
-    fun generate(moduleMap: Map<String, KoinMetaData.Module>, defaultModule: KoinMetaData.Module) {
-        logger.warn("generate ...")
-        generateModules(moduleMap, defaultModule)
-    }
-
-    private fun generateModules(
+    fun generateModules(
         moduleMap: Map<String, KoinMetaData.Module>,
         defaultModule: KoinMetaData.Module
     ) {
-        if (moduleMap.isEmpty()){
-        } else {
-            moduleMap.values.forEachIndexed { index, module ->
-                if (index == 0) {
-                    val file = getDefaultFile()
-                    file.appendText(allModulesHeader)
-                }
-                generateModule(module)
-                if (index == moduleMap.values.size - 1) {
-                    generateDefaultModule(defaultModule)
-                    val file = getDefaultFile()
-                    file.appendText("\n" + allModulesFooter)
-                }
+        logger.warn("generate ...")
+        moduleMap.values.forEachIndexed { index, module ->
+            if (index == 0) {
+                val file = getDefaultFile()
+                file.appendText(allModulesHeader)
+            }
+            generateModule(module)
+            if (index == moduleMap.values.size - 1) {
+                generateModule(defaultModule)
+                val file = getDefaultFile()
+                file.appendText("\n" + allModulesFooter)
             }
         }
     }
 
-    private fun generateDefaultModule(defaultModule: KoinMetaData.Module) {
-        val file = getDefaultFile()
-        file.appendText("\n\t\t" + defaultModuleGen)
-        generateModule(defaultModule)
+    fun generateDefinitions(
+        definitions: List<KoinMetaData.Definition>
+    ) {
+        logger.warn("generate ...")
+        definitions.forEachIndexed { index,  def ->
+            if (index == 0){
+                getDefaultFile().apply {
+                    appendText(allModulesHeader)
+                    appendText("\n\t\t"+defaultModuleApply)
+                }
+            }
+            logger.warn("generate $def")
+            generateDefinition(def)
+            if (index == definitions.size -1){
+                getDefaultFile().apply {
+                    appendText("\n\t\t}\n")
+                    appendText(allModulesFooter)
+                }
+            }
+        }
     }
 
     private fun generateModule(module: KoinMetaData.Module) {
@@ -89,7 +101,7 @@ class KoinCodeGenerator(
                         .isEmpty()) "" else " params ->"
             val ctor = generateConstructor(def.constructorParameters)
             val binds = generateBindings(def.bindings)
-            appendText("\n\t\t${def.keyword} { $param${def.packageName}.${def.className}$ctor } $binds")
+            appendText("\n\t\t\t\t${def.keyword} { $param${def.packageName}.${def.className}$ctor } $binds")
         }
     }
 
