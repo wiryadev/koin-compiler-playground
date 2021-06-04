@@ -9,42 +9,97 @@ fun OutputStream.appendText(str: String) {
     this.write(str.toByteArray())
 }
 
+typealias ModuleIndex = Pair<String, KoinMetaData.Module>
+
 class BuilderProcessor(
     val codeGenerator: CodeGenerator,
     val logger: KSPLogger
 ) : SymbolProcessor {
 
+    lateinit var moduleMap: Map<String, KoinMetaData.Module>
+
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        val singleComponents = resolver.getSymbolsWithAnnotation(Single::class.qualifiedName!!)
-        val ret = singleComponents.filter { !it.validate() }.toList()
-        val all = singleComponents.filter { it is KSClassDeclaration && it.validate() }
-        val count = all.count()
-        all.forEachIndexed { index, ksAnnotated ->
-            ksAnnotated.accept(
-                SingleBuilderVisitor(
-                    index == 0,
-                    index == count - 1
-                ), Unit
-            )
-        }
+//        val ret = singleComponents.filter { !it.validate() }.toList()
 
-        val componentScans = resolver.getSymbolsWithAnnotation(ComponentScan::class.qualifiedName!!)
-        componentScans.filter { it is KSPropertyDeclaration && it.validate() }
-            .forEach {
+        val defaultModule = KoinMetaData.Module(
+            packageName = "org.koin.ksp.generated",
+            fieldName = "defaultModule"
+        )
+        scanMetaData(resolver,defaultModule)
+        generate(defaultModule)
+        return emptyList()
+    }
 
+    private fun scanMetaData(resolver: Resolver, defaultModule: KoinMetaData.Module) {
+        logger.warn("scan modules ...")
+
+        moduleMap = resolver.getSymbolsWithAnnotation(ComponentScan::class.qualifiedName!!)
+            .filter { it is KSPropertyDeclaration && it.validate() }
+            .map {
                 val declaration = (it as KSPropertyDeclaration)
-                logger.warn("declaration -> $it",it)
+                logger.warn("module -> $it", it)
                 val modulePackage = declaration.containingFile?.packageName?.asString() ?: ""
                 val name = "$it"
-                val file = codeGenerator.createNewFile(
-                    Dependencies.ALL_FILES,
-                    "org.koin.ksp.generated",
-                    "Default"
+                val moduleMetadata = KoinMetaData.Module(
+                    packageName = modulePackage,
+                    fieldName = name
                 )
-                file.appendText("// $modulePackage.$name.apply { }")
-            }
+                ModuleIndex(modulePackage, moduleMetadata)
+            }.toMap()
 
-        return emptyList()
+        logger.warn("scan definitions ...")
+        resolver.getSymbolsWithAnnotation(Single::class.qualifiedName!!)
+            .filter { it is KSClassDeclaration && it.validate() }
+            .map {
+                logger.warn("single -> $it", it)
+                val ksClassDeclaration = (it as KSClassDeclaration)
+                val packageName = ksClassDeclaration.containingFile!!.packageName.asString()
+                val className = ksClassDeclaration.simpleName.asString()
+                val definition = KoinMetaData.Definition.Single(
+                    packageName = packageName,
+                    className = className,
+                    constructorParameters = ksClassDeclaration.primaryConstructor?.parameters?.map { KoinMetaData.ConstructorParameter() }
+                        ?: emptyList(),
+                    bindings = ksClassDeclaration.superTypes.toList()
+                )
+                addToModule(definition,defaultModule)
+            }.toList()
+    }
+
+    private fun generate(defaultModule: KoinMetaData.Module) {
+        logger.warn("generate ...")
+        moduleMap.values.forEachIndexed { index, module ->
+            generateModule(module)
+            if (index == moduleMap.values.size -1){
+                generateModule(defaultModule)
+            }
+        }
+    }
+
+    private fun generateModule(module: KoinMetaData.Module) {
+        logger.warn("generate $module")
+        val file = codeGenerator.createNewFile(
+            Dependencies.ALL_FILES,
+            "org.koin.ksp.generated",
+            "Default"
+        )
+        file.appendText("\n// module - ${module.packageName} : $module")
+
+        module.definitions.forEach { def ->
+            logger.warn("generate $def")
+            val file = codeGenerator.createNewFile(
+                Dependencies.ALL_FILES,
+                "org.koin.ksp.generated",
+                "Default"
+            )
+            file.appendText("\n// def - ${def.packageName} : ${def.className}")
+        }
+    }
+
+    private fun addToModule(definition: KoinMetaData.Definition, defaultModule: KoinMetaData.Module) {
+        val moduleKey = moduleMap.keys.firstOrNull { definition.packageName.contains(it) }
+        val module = moduleMap[moduleKey] ?: defaultModule
+        module.definitions.add(definition)
     }
 
     inner class SingleBuilderVisitor(val isFirst: Boolean, val isLast: Boolean) : KSVisitorVoid() {
@@ -100,40 +155,12 @@ class BuilderProcessor(
         }
     }
 
-//    inner class ModuleBuilderVisitor : KSVisitorVoid() {
-////        override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit) {
-////            logger.error("visitPropertyDeclaration",property)
-////            property.accept(this, data)
-////        }
-//
-//        override fun visitDeclarationContainer(declarationContainer: KSDeclarationContainer, data: Unit) {
-//            logger.error("visitDeclarationContainer",declarationContainer)
-//        }
-//
-//        override fun visitDeclaration(declaration: KSDeclaration, data: Unit) {
-//            logger.error("visitDeclaration",declaration)
-//            val ksClassDeclaration = declaration.parentDeclaration as KSPropertyDeclaration
-//            val packageName = ksClassDeclaration.containingFile!!.packageName.asString()
-//            val name = ksClassDeclaration.simpleName.asString()
-//            val file = codeGenerator.createNewFile(
-//                Dependencies.ALL_FILES,
-//                "org.koin.ksp.generated",
-//                "Default"
-//            )
-//            file.appendText("//$name")
-//        }
-//
-//        override fun visitFunctionDeclaration(function: KSFunctionDeclaration, data: Unit) {
-//
-//        }
-//    }
-
 }
 
 class BuilderProcessorProvider : SymbolProcessorProvider {
     override fun create(
-        env: SymbolProcessorEnvironment
+        environment: SymbolProcessorEnvironment
     ): SymbolProcessor {
-        return BuilderProcessor(env.codeGenerator, env.logger)
+        return BuilderProcessor(environment.codeGenerator, environment.logger)
     }
 }
