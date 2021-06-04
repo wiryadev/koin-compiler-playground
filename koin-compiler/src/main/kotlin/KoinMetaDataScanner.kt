@@ -1,8 +1,6 @@
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
-import com.google.devtools.ksp.symbol.KSAnnotated
-import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
 import org.koin.core.annotation.ComponentScan
 import org.koin.core.annotation.Single
@@ -50,7 +48,7 @@ class KoinMetaDataScanner(
             className = className,
             constructorParameters = ksClassDeclaration.primaryConstructor?.parameters?.map { KoinMetaData.ConstructorParameter() }
                 ?: emptyList(),
-            bindings = ksClassDeclaration.superTypes.toList()
+            bindings = ksClassDeclaration.superTypes.map { it.resolve().declaration }.toList()
         )
         addToModule(definition, defaultModule)
     }

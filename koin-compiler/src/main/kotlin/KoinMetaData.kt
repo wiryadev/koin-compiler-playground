@@ -1,5 +1,4 @@
-import com.google.devtools.ksp.symbol.KSFile
-import com.google.devtools.ksp.symbol.KSTypeReference
+import com.google.devtools.ksp.symbol.KSDeclaration
 
 sealed class KoinMetaData {
 
@@ -13,7 +12,7 @@ sealed class KoinMetaData {
         val packageName: String,
         val className: String,
         val constructorParameters: List<ConstructorParameter> = emptyList(),
-        val bindings: List<KSTypeReference>,
+        val bindings: List<KSDeclaration>,
         val keyword : String
     ) : KoinMetaData() {
 
@@ -21,7 +20,7 @@ sealed class KoinMetaData {
             packageName: String,
             className: String,
             constructorParameters: List<ConstructorParameter> = emptyList(),
-            bindings: List<KSTypeReference>
+            bindings: List<KSDeclaration>
         ) : Definition(packageName, className, constructorParameters, bindings, "single")
     }
 

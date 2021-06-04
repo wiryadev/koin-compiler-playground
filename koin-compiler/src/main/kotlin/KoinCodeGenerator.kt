@@ -1,6 +1,7 @@
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
+import com.google.devtools.ksp.symbol.KSDeclaration
 import java.io.OutputStream
 
 class KoinCodeGenerator(
@@ -15,6 +16,7 @@ class KoinCodeGenerator(
         import org.koin.core.module.Module
         import org.koin.dsl.module
         import org.koin.dsl.bind
+        import org.koin.dsl.binds
     
         fun KoinApplication.allModules(modules : List<Module> = emptyList(), useDefaultModule : Boolean = true) {
     """.trimIndent()
@@ -31,7 +33,6 @@ class KoinCodeGenerator(
     val defaultModuleGen = """
         val defaultModule = Module()
     """.trimIndent()
-
 
     fun generate(moduleMap: Map<String, KoinMetaData.Module>, defaultModule: KoinMetaData.Module) {
         logger.warn("generate ...")
@@ -58,22 +59,42 @@ class KoinCodeGenerator(
     private fun generateModule(module: KoinMetaData.Module) {
         logger.warn("generate $module")
         getDefaultFile().apply {
-            val packageName = if (module.packageName.isNotBlank()) "${module.packageName}." else ""
-            appendText("\n\t $packageName${module.fieldName}.apply {")
-            module.definitions.forEach { def ->
-                logger.warn("generate $def")
-                generateDefinition(def)
+            if (module.definitions.isNotEmpty()) {
+                appendText("\n\t ${module.packageName.dotPackage()}${module.fieldName}.apply {")
+                module.definitions.forEach { def ->
+                    logger.warn("generate $def")
+                    generateDefinition(def)
+                }
+                appendText("\n\t}")
+            } else {
+                logger.warn("no definition for $module")
             }
-            appendText("\n\t}")
         }
     }
 
     private fun generateDefinition(def: KoinMetaData.Definition) {
         getDefaultFile().apply {
-            val param = if (def.constructorParameters.filter { it.type == KoinMetaData.ConstructorParameterType.PARAMETER_INJECT }.isEmpty()) "" else " params ->"
+            val param =
+                if (def.constructorParameters.filter { it.type == KoinMetaData.ConstructorParameterType.PARAMETER_INJECT }
+                        .isEmpty()) "" else " params ->"
             val ctor = generateConstructor(def.constructorParameters)
-            appendText("\n\t\t${def.keyword} { $param${def.packageName}.${def.className}$ctor }")
+            val binds = generateBindings(def.bindings)
+            appendText("\n\t\t${def.keyword} { $param${def.packageName}.${def.className}$ctor } $binds")
         }
+    }
+
+    private fun generateBindings(bindings: List<KSDeclaration>): String {
+        return when {
+            bindings.isEmpty() -> ""
+            bindings.size == 1 -> "bind(${generateBinding(bindings.first())})"
+            else -> bindings.joinToString(prefix = "binds(", separator = ",", postfix = ")") { generateBinding(it) }
+        }
+    }
+
+    private fun generateBinding(declaration: KSDeclaration): String {
+        val packageName = declaration.containingFile!!.packageName.asString()
+        val className = declaration.simpleName.asString()
+        return "$packageName.$className::class"
     }
 
     private fun generateConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
@@ -88,6 +109,8 @@ class KoinCodeGenerator(
         "Default"
     )
 }
+
+fun String.dotPackage() = if (isNotBlank()) "$this." else ""
 
 fun OutputStream.appendText(str: String) {
     this.write(str.toByteArray())
