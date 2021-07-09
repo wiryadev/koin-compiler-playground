@@ -10,8 +10,6 @@ class BuilderProcessor(
     val koinMetaDataScanner = KoinMetaDataScanner(logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-//        val ret = singleComponents.filter { !it.validate() }.toList()
-
         val defaultModule = KoinMetaData.Module(
             packageName = "",
             name = "defaultModule"

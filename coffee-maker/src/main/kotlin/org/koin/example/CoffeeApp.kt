@@ -6,10 +6,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.time.measureDuration
 import org.koin.example.coffee.CoffeeAppModule
 import org.koin.example.coffee.CoffeeMaker
-import org.koin.example.test.ClassModule2
-import org.koin.example.test.TestMe2
 import org.koin.ksp.generated.*
-import org.koin.mp.KoinPlatformTools
 
 class CoffeeApp : KoinComponent {
     val maker: CoffeeMaker by inject()
@@ -18,10 +15,9 @@ class CoffeeApp : KoinComponent {
 fun main() {
     startKoin {
         printLogger()
+//        defaultModule()
         modules(
-//            defaultModule,
-            CoffeeAppModule().module,
-//            ClassModule2().module
+            CoffeeAppModule().module
         )
     }
 
@@ -29,8 +25,6 @@ fun main() {
     measureDuration("Got Coffee") {
         coffeeShop.maker.brew()
     }
-
-//    KoinPlatformTools.defaultContext().get().get<TestMe2>()
 }
 
 fun measureDuration(msg: String, code: () -> Unit): Double {

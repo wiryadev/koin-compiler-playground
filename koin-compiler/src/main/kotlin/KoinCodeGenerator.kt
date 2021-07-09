@@ -18,6 +18,7 @@ class KoinCodeGenerator(
         import org.koin.dsl.bind
         import org.koin.dsl.binds
         
+        fun KoinApplication.defaultModule() = modules(defaultModule)
         val defaultModule = module {
     """.trimIndent()
 
@@ -46,10 +47,10 @@ class KoinCodeGenerator(
 
     private fun generateModule(module: KoinMetaData.Module) {
         logger.warn("generate $module - ${module.type}")
-        getDefaultFile().apply {
+        getDefaultFile().let { defaultFile ->
             if (module.definitions.isNotEmpty()) {
                 when (module.type) {
-                    KoinMetaData.ModuleType.FIELD -> generateFieldModule(module)
+                    KoinMetaData.ModuleType.FIELD -> defaultFile.generateFieldModule(module)
                     KoinMetaData.ModuleType.CLASS -> generateClassModule(module)
                 }
             } else {
