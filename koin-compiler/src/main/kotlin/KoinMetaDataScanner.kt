@@ -3,6 +3,7 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.validate
 import org.koin.core.annotation.Module
+import org.koin.core.annotation.Single
 
 class KoinMetaDataScanner(
     val logger: KSPLogger
@@ -11,41 +12,56 @@ class KoinMetaDataScanner(
     lateinit var moduleMap : Map<String, KoinMetaData.Module>
 
     fun scanMetaData(resolver: Resolver, defaultModule: KoinMetaData.Module): Pair<Map<String, KoinMetaData.Module>, List<KoinMetaData.Definition>> {
-        return scanClassModules(resolver, defaultModule)
+        return Pair(
+            scanClassModules(resolver, defaultModule).toSortedMap(),
+            scanComponents(resolver, defaultModule)
+        )
     }
 
     private fun scanClassModules(
         resolver: Resolver,
         defaultModule: KoinMetaData.Module
-    ): Pair<Map<String, KoinMetaData.Module>, List<KoinMetaData.Definition>> {
+    ): Map<String, KoinMetaData.Module> {
 
         logger.warn("scan modules ...")
+        // class modules
         moduleMap = resolver.getSymbolsWithAnnotation(Module::class.qualifiedName!!)
             .filter { it is KSClassDeclaration && it.validate() }
             .map { indexClassModule(it) }
             .toMap()
 
+        return moduleMap
+    }
 
-        //TODO Scan annotations later (declared classes ...)
-        val scannedDefinitions = emptyList<KoinMetaData.Definition>()
-//        logger.warn("scan definitions ...")
-//        val definitions = resolver.getSymbolsWithAnnotation(Single::class.qualifiedName!!)
-//            .filter { it is KSClassDeclaration && it.validate() }
-//            .mapNotNull { linkDefinition(it, defaultModule) }
-//            .toList()
-
-        return Pair(moduleMap, scannedDefinitions)
+    private fun scanComponents(
+        resolver: Resolver,
+        defaultModule: KoinMetaData.Module
+    ): List<KoinMetaData.Definition> {
+        // component scan
+        logger.warn("scan definitions ...")
+        val scannedDefinitions = resolver.getSymbolsWithAnnotation(Single::class.qualifiedName!!)
+            .filter { it is KSClassDeclaration && it.validate() }
+            .mapNotNull {
+                linkScannedDefinition(it, defaultModule)
+            }
+            .toList()
+        return scannedDefinitions
     }
 
     private fun indexClassModule(element: KSAnnotated): ModuleIndex {
         val declaration = (element as KSClassDeclaration)
         logger.warn("module(Class) -> $element", element)
         val modulePackage = declaration.containingFile?.packageName?.asString() ?: ""
+
+        val useComponentScan = (declaration.annotations.firstOrNull { it.shortName.asString() == "ComponentScan" } != null)
+        logger.warn("module(Class) useComponentScan=$useComponentScan", element)
+
         val name = "$element"
         val moduleMetadata = KoinMetaData.Module(
             packageName = modulePackage,
             name = name,
-            type = KoinMetaData.ModuleType.CLASS
+            type = KoinMetaData.ModuleType.CLASS,
+            componentScan = useComponentScan
         )
 
         val annotatedFunctions = declaration.getAllFunctions()
@@ -89,7 +105,7 @@ class KoinMetaDataScanner(
         return ModuleIndex(modulePackage, moduleMetadata)
     }
 
-    private fun linkDefinition(it: KSAnnotated, defaultModule: KoinMetaData.Module): KoinMetaData.Definition {
+    private fun linkScannedDefinition(it: KSAnnotated, defaultModule: KoinMetaData.Module): KoinMetaData.Definition {
         logger.warn("single(class) -> $it", it)
         val ksClassDeclaration = (it as KSClassDeclaration)
         val packageName = ksClassDeclaration.containingFile!!.packageName.asString()
@@ -108,8 +124,10 @@ class KoinMetaDataScanner(
 
 
     private fun addToModule(definition: KoinMetaData.Definition, defaultModule: KoinMetaData.Module) {
-        val moduleKey = moduleMap.keys.firstOrNull { definition.packageName.contains(it) }
-        val module = moduleMap[moduleKey] ?: defaultModule
+        val definitionPackage = definition.packageName
+        val foundModule = moduleMap.values.firstOrNull { definitionPackage.contains(it.packageName) && it.componentScan}
+        val module = foundModule ?: defaultModule
+        logger.warn("single(class) -> $definition -> module $module")
         module.definitions.add(definition)
     }
 }

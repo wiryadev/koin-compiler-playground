@@ -9,7 +9,7 @@ class KoinCodeGenerator(
     val logger: KSPLogger
 ) {
 
-    val allModulesHeader = """
+    val defaultModuleHeader = """
         package org.koin.ksp.generated
     
         import org.koin.core.KoinApplication
@@ -18,22 +18,11 @@ class KoinCodeGenerator(
         import org.koin.dsl.bind
         import org.koin.dsl.binds
         
-        val defaultModule = module {}
-    
-        fun KoinApplication.componentScan(modules : List<Module> = listOf(), useDefaultModule : Boolean = true) {
+        val defaultModule = module {
     """.trimIndent()
 
-    val allModulesFooter = """
-            if (useDefaultModule){
-                modules(defaultModule+modules)
-            } else {
-                modules(modules)
-            }
+    val defaultModuleFooter = """
         }
-    """.trimIndent()
-
-    val defaultModuleApply = """
-            defaultModule.apply {
     """.trimIndent()
 
     fun generateModules(
@@ -44,13 +33,13 @@ class KoinCodeGenerator(
         moduleMap.values.forEachIndexed { index, module ->
             if (index == 0) {
                 val file = getDefaultFile()
-                file.appendText(allModulesHeader)
+                file.appendText(defaultModuleHeader)
             }
             generateModule(module)
             if (index == moduleMap.values.size - 1) {
                 generateModule(defaultModule)
                 val file = getDefaultFile()
-                file.appendText("\n" + allModulesFooter)
+                file.appendText("\n" + defaultModuleFooter)
             }
         }
     }
@@ -75,15 +64,19 @@ class KoinCodeGenerator(
             """
             package org.koin.ksp.generated
             import org.koin.dsl.module
+            import org.koin.dsl.bind
         """.trimIndent()
         )
         val generatedField = "${module.name}Module"
         val classModule = "${module.packageName}.${module.name}"
         classFile.appendText("\nval $generatedField = module {")
-        classFile.appendText("\n val moduleInstance = $classModule()")
+        classFile.appendText("\n\t\t\t\tval moduleInstance = $classModule()")
         // Definitions here
         module.definitions.filterIsInstance<KoinMetaData.Definition.FunctionDeclarationDefinition>().forEach { def ->
             classFile.generateFunctionDeclarationDefinition(def)
+        }
+        module.definitions.filterIsInstance<KoinMetaData.Definition.ClassDeclarationDefinition>().forEach { def ->
+            classFile.generateClassDeclarationDefinition(def)
         }
         classFile.appendText("\n}")
         classFile.appendText("\nval $classModule.module : org.koin.core.module.Module get() = $generatedField")
@@ -97,12 +90,10 @@ class KoinCodeGenerator(
     }
 
     private fun OutputStream.generateFieldModule(module: KoinMetaData.Module) {
-        appendText("\n\t ${module.packageName.dotPackage()}${module.name}.apply {")
         module.definitions.filterIsInstance<KoinMetaData.Definition.ClassDeclarationDefinition>().forEach { def ->
             logger.warn("generate $def")
             generateClassDeclarationDefinition(def)
         }
-        appendText("\n\t}")
     }
 
     fun generateDefaultDefinitions(
@@ -112,32 +103,30 @@ class KoinCodeGenerator(
         definitions.forEachIndexed { index, def ->
             if (index == 0) {
                 getDefaultFile().apply {
-                    appendText(allModulesHeader)
-                    appendText("\n\t\t" + defaultModuleApply)
+                    appendText(defaultModuleHeader)
+                    appendText("\n\t\t" + defaultModuleFooter)
                 }
             }
             logger.warn("generate $def")
             if (def is KoinMetaData.Definition.ClassDeclarationDefinition) {
-                generateClassDeclarationDefinition(def)
+                getDefaultFile().generateClassDeclarationDefinition(def)
             }
             if (index == definitions.size - 1) {
                 getDefaultFile().apply {
                     appendText("\n\t\t}\n")
-                    appendText(allModulesFooter)
+                    appendText(defaultModuleFooter)
                 }
             }
         }
     }
 
-    private fun generateClassDeclarationDefinition(def: KoinMetaData.Definition.ClassDeclarationDefinition) {
-        getDefaultFile().apply {
-            val param =
-                if (def.constructorParameters.filter { it.type == KoinMetaData.ConstructorParameterType.PARAMETER_INJECT }
-                        .isEmpty()) "" else " params ->"
-            val ctor = generateConstructor(def.constructorParameters)
-            val binds = generateBindings(def.bindings)
-            appendText("\n\t\t\t\t${def.keyword} { $param${def.packageName}.${def.className}$ctor } $binds")
-        }
+    private fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition.ClassDeclarationDefinition) {
+        val param =
+            if (def.constructorParameters.filter { it.type == KoinMetaData.ConstructorParameterType.PARAMETER_INJECT }
+                    .isEmpty()) "" else " params ->"
+        val ctor = generateConstructor(def.constructorParameters)
+        val binds = generateBindings(def.bindings)
+        appendText("\n\t\t\t\t${def.keyword} { $param${def.packageName}.${def.className}$ctor } $binds")
     }
 
     private fun generateBindings(bindings: List<KSDeclaration>): String {

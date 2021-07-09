@@ -6,7 +6,8 @@ sealed class KoinMetaData {
         val packageName: String,
         val name: String,
         val definitions: MutableList<Definition> = mutableListOf(),
-        val type: ModuleType = ModuleType.FIELD
+        val type: ModuleType = ModuleType.FIELD,
+        val componentScan : Boolean = false
     ) : KoinMetaData()
 
     sealed class Definition(
