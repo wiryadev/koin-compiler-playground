@@ -1,11 +1,5 @@
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
-import com.google.devtools.ksp.validate
-import org.koin.core.annotation.ComponentScan
-import org.koin.core.annotation.Single
-import java.io.OutputStream
-
-typealias ModuleIndex = Pair<String, KoinMetaData.Module>
 
 class BuilderProcessor(
     val codeGenerator: CodeGenerator,
@@ -20,13 +14,17 @@ class BuilderProcessor(
 
         val defaultModule = KoinMetaData.Module(
             packageName = "",
-            fieldName = "defaultModule"
+            name = "defaultModule"
         )
+        logger.warn("Scan metadata ...")
         val (moduleMap,definitions) = koinMetaDataScanner.scanMetaData(resolver,defaultModule)
+        logger.warn("Code generation ...")
         if (moduleMap.isNotEmpty()){
+            logger.warn("Generate from modules metadata ...")
             koinCodeGenerator.generateModules(moduleMap, defaultModule)
         } else {
-            koinCodeGenerator.generateDefinitions(definitions)
+            logger.warn("Generate default module ...")
+            koinCodeGenerator.generateDefaultDefinitions(definitions)
         }
         return emptyList()
     }

@@ -1,7 +1,6 @@
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSDeclaration
 import java.io.OutputStream
 
@@ -41,7 +40,7 @@ class KoinCodeGenerator(
         moduleMap: Map<String, KoinMetaData.Module>,
         defaultModule: KoinMetaData.Module
     ) {
-        logger.warn("generate ...")
+        logger.warn("generate ${moduleMap.size} modules ...")
         moduleMap.values.forEachIndexed { index, module ->
             if (index == 0) {
                 val file = getDefaultFile()
@@ -57,35 +56,71 @@ class KoinCodeGenerator(
     }
 
     private fun generateModule(module: KoinMetaData.Module) {
-        logger.warn("generate $module")
+        logger.warn("generate $module - ${module.type}")
         getDefaultFile().apply {
             if (module.definitions.isNotEmpty()) {
-                appendText("\n\t ${module.packageName.dotPackage()}${module.fieldName}.apply {")
-                module.definitions.forEach { def ->
-                    logger.warn("generate $def")
-                    generateDefinition(def)
+                when (module.type) {
+                    KoinMetaData.ModuleType.FIELD -> generateFieldModule(module)
+                    KoinMetaData.ModuleType.CLASS -> generateClassModule(module)
                 }
-                appendText("\n\t}")
             } else {
                 logger.warn("no definition for $module")
             }
         }
     }
 
-    fun generateDefinitions(
+    private fun generateClassModule(module: KoinMetaData.Module) {
+        val classFile = getFile(fileName = "${module.name}Gen")
+        classFile.appendText(
+            """
+            package org.koin.ksp.generated
+            import org.koin.dsl.module
+        """.trimIndent()
+        )
+        val generatedField = "${module.name}Module"
+        val classModule = "${module.packageName}.${module.name}"
+        classFile.appendText("\nval $generatedField = module {")
+        classFile.appendText("\n val moduleInstance = $classModule()")
+        // Definitions here
+        module.definitions.filterIsInstance<KoinMetaData.Definition.FunctionDeclarationDefinition>().forEach { def ->
+            classFile.generateFunctionDeclarationDefinition(def)
+        }
+        classFile.appendText("\n}")
+        classFile.appendText("\nval $classModule.module : org.koin.core.module.Module get() = $generatedField")
+        classFile.flush()
+        classFile.close()
+    }
+
+    private fun OutputStream.generateFunctionDeclarationDefinition(def: KoinMetaData.Definition.FunctionDeclarationDefinition) {
+        val ctor = generateConstructor(def.parameters)
+        appendText("\n\t\t\t\t${def.keyword} {  moduleInstance.${def.functionName}$ctor }")
+    }
+
+    private fun OutputStream.generateFieldModule(module: KoinMetaData.Module) {
+        appendText("\n\t ${module.packageName.dotPackage()}${module.name}.apply {")
+        module.definitions.filterIsInstance<KoinMetaData.Definition.ClassDeclarationDefinition>().forEach { def ->
+            logger.warn("generate $def")
+            generateClassDeclarationDefinition(def)
+        }
+        appendText("\n\t}")
+    }
+
+    fun generateDefaultDefinitions(
         definitions: List<KoinMetaData.Definition>
     ) {
-        logger.warn("generate ...")
-        definitions.forEachIndexed { index,  def ->
-            if (index == 0){
+        logger.warn("generate default module")
+        definitions.forEachIndexed { index, def ->
+            if (index == 0) {
                 getDefaultFile().apply {
                     appendText(allModulesHeader)
-                    appendText("\n\t\t"+defaultModuleApply)
+                    appendText("\n\t\t" + defaultModuleApply)
                 }
             }
             logger.warn("generate $def")
-            generateDefinition(def)
-            if (index == definitions.size -1){
+            if (def is KoinMetaData.Definition.ClassDeclarationDefinition) {
+                generateClassDeclarationDefinition(def)
+            }
+            if (index == definitions.size - 1) {
                 getDefaultFile().apply {
                     appendText("\n\t\t}\n")
                     appendText(allModulesFooter)
@@ -94,7 +129,7 @@ class KoinCodeGenerator(
         }
     }
 
-    private fun generateDefinition(def: KoinMetaData.Definition) {
+    private fun generateClassDeclarationDefinition(def: KoinMetaData.Definition.ClassDeclarationDefinition) {
         getDefaultFile().apply {
             val param =
                 if (def.constructorParameters.filter { it.type == KoinMetaData.ConstructorParameterType.PARAMETER_INJECT }
@@ -130,10 +165,10 @@ class KoinCodeGenerator(
         "org.koin.ksp.generated",
         "Default"
     )
-}
 
-fun String.dotPackage() = if (isNotBlank()) "$this." else ""
-
-fun OutputStream.appendText(str: String) {
-    this.write(str.toByteArray())
+    private fun getFile(packageName: String = "org.koin.ksp.generated", fileName: String) = codeGenerator.createNewFile(
+        Dependencies.ALL_FILES,
+        packageName,
+        fileName
+    )
 }

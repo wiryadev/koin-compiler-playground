@@ -9,7 +9,6 @@ import org.koin.example.Thermosiphon
 
 class TestMe2(val coffeeMaker: CoffeeMaker)
 
-
 @Module
 class ClassModule2 {
 
