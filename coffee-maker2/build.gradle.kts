@@ -23,5 +23,4 @@ dependencies {
     implementation("io.insert-koin:koin-core:$koinVersion")
     implementation(project(":koin-annotations"))
     ksp(project(":koin-compiler"))
-    implementation(project(":coffee-maker2"))
 }

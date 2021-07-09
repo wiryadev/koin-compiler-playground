@@ -5,7 +5,8 @@ sealed class KoinMetaData {
     data class Module(
         val packageName: String,
         val fieldName: String,
-        val definitions: MutableList<Definition> = mutableListOf()
+        val definitions: MutableList<Definition> = mutableListOf(),
+        val type : ModuleType = ModuleType.FIELD
     ) : KoinMetaData()
 
     sealed class Definition(
@@ -22,6 +23,10 @@ sealed class KoinMetaData {
             constructorParameters: List<ConstructorParameter> = emptyList(),
             bindings: List<KSDeclaration>
         ) : Definition(packageName, className, constructorParameters, bindings, "single")
+    }
+
+    enum class ModuleType {
+        FIELD, CLASS
     }
 
     data class ConstructorParameter(

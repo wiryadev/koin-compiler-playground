@@ -12,11 +12,12 @@ class KoinMetaDataScanner(
     lateinit var moduleMap: Map<String, KoinMetaData.Module>
 
     fun scanMetaData(resolver: Resolver, defaultModule: KoinMetaData.Module): Pair<Map<String, KoinMetaData.Module>, List<KoinMetaData.Definition>> {
+
         logger.warn("scan modules ...")
         moduleMap = resolver.getSymbolsWithAnnotation(ComponentScan::class.qualifiedName!!)
             .filter { it is KSPropertyDeclaration && it.validate() }
-            .map { indexModule(it) }.
-            toMap()
+            .map { indexModule(it) }
+            .toMap()
 
         logger.warn("scan definitions ...")
         val definitions = resolver.getSymbolsWithAnnotation(Single::class.qualifiedName!!)

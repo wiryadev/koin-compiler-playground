@@ -56,6 +56,22 @@ class KoinCodeGenerator(
         }
     }
 
+    private fun generateModule(module: KoinMetaData.Module) {
+        logger.warn("generate $module")
+        getDefaultFile().apply {
+            if (module.definitions.isNotEmpty()) {
+                appendText("\n\t ${module.packageName.dotPackage()}${module.fieldName}.apply {")
+                module.definitions.forEach { def ->
+                    logger.warn("generate $def")
+                    generateDefinition(def)
+                }
+                appendText("\n\t}")
+            } else {
+                logger.warn("no definition for $module")
+            }
+        }
+    }
+
     fun generateDefinitions(
         definitions: List<KoinMetaData.Definition>
     ) {
@@ -74,22 +90,6 @@ class KoinCodeGenerator(
                     appendText("\n\t\t}\n")
                     appendText(allModulesFooter)
                 }
-            }
-        }
-    }
-
-    private fun generateModule(module: KoinMetaData.Module) {
-        logger.warn("generate $module")
-        getDefaultFile().apply {
-            if (module.definitions.isNotEmpty()) {
-                appendText("\n\t ${module.packageName.dotPackage()}${module.fieldName}.apply {")
-                module.definitions.forEach { def ->
-                    logger.warn("generate $def")
-                    generateDefinition(def)
-                }
-                appendText("\n\t}")
-            } else {
-                logger.warn("no definition for $module")
             }
         }
     }

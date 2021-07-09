@@ -17,3 +17,4 @@ rootProject.name = "playground"
 include(":koin-annotations")
 include(":koin-compiler")
 include(":coffee-maker")
+include(":coffee-maker2")
