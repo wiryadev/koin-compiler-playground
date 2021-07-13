@@ -15,9 +15,11 @@ class CoffeeApp : KoinComponent {
 fun main() {
     startKoin {
         printLogger()
+        // if we just want teh default module
 //        defaultModule()
+        // else let's use some modules
         modules(
-            CoffeeAppModule().module
+            CoffeeAppModule().module,
         )
     }
 

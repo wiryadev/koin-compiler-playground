@@ -1,5 +1,13 @@
 import com.google.devtools.ksp.symbol.KSDeclaration
 
+enum class KoinDefinitionAnnotation {
+    Single, Factory;
+
+    companion object {
+        val allValues : List<String> = values().map { it.toString() }
+    }
+}
+
 sealed class KoinMetaData {
 
     data class Module(
@@ -7,7 +15,7 @@ sealed class KoinMetaData {
         val name: String,
         val definitions: MutableList<Definition> = mutableListOf(),
         val type: ModuleType = ModuleType.FIELD,
-        val componentScan : Boolean = false
+        val componentScan: Boolean = false
     ) : KoinMetaData()
 
     sealed class Definition(
@@ -26,9 +34,9 @@ sealed class KoinMetaData {
             class Single(
                 packageName: String,
                 functionName: String,
-                parameters: List<ConstructorParameter> = emptyList(),
+                functionParameters: List<ConstructorParameter> = emptyList(),
                 returnedType: String,
-            ) : FunctionDeclarationDefinition(packageName, "single", functionName, parameters, returnedType)
+            ) : FunctionDeclarationDefinition(packageName, "single", functionName, functionParameters, returnedType)
         }
 
         sealed class ClassDeclarationDefinition(
@@ -47,6 +55,9 @@ sealed class KoinMetaData {
             ) : ClassDeclarationDefinition(packageName, "single", className, constructorParameters, bindings)
         }
 
+        enum class DefinitionKeyword {
+            SINGLE, FAC
+        }
     }
 
     enum class ModuleType {

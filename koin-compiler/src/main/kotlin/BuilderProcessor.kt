@@ -15,7 +15,7 @@ class BuilderProcessor(
             name = "defaultModule"
         )
         logger.warn("Scan metadata ...")
-        val (moduleMap,definitions) = koinMetaDataScanner.scanMetaData(resolver,defaultModule)
+        val (moduleMap,definitions) = koinMetaDataScanner.scanAllMetaData(resolver,defaultModule)
         logger.warn("Code generation ...")
         if (moduleMap.isNotEmpty()){
             logger.warn("Generate from modules metadata ...")

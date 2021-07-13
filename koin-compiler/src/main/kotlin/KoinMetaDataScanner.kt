@@ -11,7 +11,7 @@ class KoinMetaDataScanner(
 
     lateinit var moduleMap : Map<String, KoinMetaData.Module>
 
-    fun scanMetaData(resolver: Resolver, defaultModule: KoinMetaData.Module): Pair<Map<String, KoinMetaData.Module>, List<KoinMetaData.Definition>> {
+    fun scanAllMetaData(resolver: Resolver, defaultModule: KoinMetaData.Module): Pair<Map<String, KoinMetaData.Module>, List<KoinMetaData.Definition>> {
         return Pair(
             scanClassModules(resolver, defaultModule).toSortedMap(),
             scanComponents(resolver, defaultModule)
@@ -33,21 +33,6 @@ class KoinMetaDataScanner(
         return moduleMap
     }
 
-    private fun scanComponents(
-        resolver: Resolver,
-        defaultModule: KoinMetaData.Module
-    ): List<KoinMetaData.Definition> {
-        // component scan
-        logger.warn("scan definitions ...")
-        val scannedDefinitions = resolver.getSymbolsWithAnnotation(Single::class.qualifiedName!!)
-            .filter { it is KSClassDeclaration && it.validate() }
-            .mapNotNull {
-                linkScannedDefinition(it, defaultModule)
-            }
-            .toList()
-        return scannedDefinitions
-    }
-
     private fun indexClassModule(element: KSAnnotated): ModuleIndex {
         val declaration = (element as KSClassDeclaration)
         logger.warn("module(Class) -> $element", element)
@@ -65,7 +50,7 @@ class KoinMetaDataScanner(
         )
 
         val annotatedFunctions = declaration.getAllFunctions()
-            .filter { it.annotations.map { a -> a.shortName.asString() }.contains("Single") }
+            .filter { it.annotations.map { a -> a.shortName.asString() }.any { a -> a in KoinDefinitionAnnotation.allValues } }
             .toList()
 
         logger.warn("module(Class) -> $element | found functions: ${annotatedFunctions.size}", element)
@@ -82,30 +67,31 @@ class KoinMetaDataScanner(
         val type = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
         return type?.let {
             val functionName = ksFunctionDeclaration.simpleName.asString()
-            val definition = KoinMetaData.Definition.FunctionDeclarationDefinition.Single(
+            KoinMetaData.Definition.FunctionDeclarationDefinition.Single(
                 packageName = packageName,
                 functionName = functionName,
-                parameters = ksFunctionDeclaration.parameters.map { KoinMetaData.ConstructorParameter() }
+                functionParameters = ksFunctionDeclaration.parameters.map { KoinMetaData.ConstructorParameter() }
                     ?: emptyList(),
                 returnedType = type
             )
-            definition
         }
     }
 
-    private fun indexFieldModule(it: KSAnnotated): ModuleIndex {
-        val declaration = (it as KSPropertyDeclaration)
-        logger.warn("module(field) -> $it", it)
-        val modulePackage = declaration.containingFile?.packageName?.asString() ?: ""
-        val name = "$it"
-        val moduleMetadata = KoinMetaData.Module(
-            packageName = modulePackage,
-            name = name
-        )
-        return ModuleIndex(modulePackage, moduleMetadata)
+    private fun scanComponents(
+        resolver: Resolver,
+        defaultModule: KoinMetaData.Module
+    ): List<KoinMetaData.Definition> {
+        // component scan
+        logger.warn("scan definitions ...")
+        return resolver.getSymbolsWithAnnotation(Single::class.qualifiedName!!)
+            .filter { it is KSClassDeclaration && it.validate() }
+            .mapNotNull {
+                linkDefinition(it, defaultModule)
+            }
+            .toList()
     }
 
-    private fun linkScannedDefinition(it: KSAnnotated, defaultModule: KoinMetaData.Module): KoinMetaData.Definition {
+    private fun linkDefinition(it: KSAnnotated, defaultModule: KoinMetaData.Module): KoinMetaData.Definition {
         logger.warn("single(class) -> $it", it)
         val ksClassDeclaration = (it as KSClassDeclaration)
         val packageName = ksClassDeclaration.containingFile!!.packageName.asString()
@@ -120,8 +106,6 @@ class KoinMetaDataScanner(
         addToModule(definition, defaultModule)
         return definition
     }
-
-
 
     private fun addToModule(definition: KoinMetaData.Definition, defaultModule: KoinMetaData.Module) {
         val definitionPackage = definition.packageName
