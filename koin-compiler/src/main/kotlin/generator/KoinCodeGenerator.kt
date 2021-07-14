@@ -1,4 +1,5 @@
 import com.google.devtools.ksp.symbol.KSDeclaration
+import metadata.KoinMetaData
 import java.io.OutputStream
 
 val DEFAULT_MODULE_HEADER = """

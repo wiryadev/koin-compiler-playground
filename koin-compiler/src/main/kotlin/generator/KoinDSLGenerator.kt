@@ -1,6 +1,14 @@
+package generator
+
+import DEFAULT_MODULE_FOOTER
+import DEFAULT_MODULE_HEADER
+import appendText
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
+import generateClassDeclarationDefinition
+import generateClassModule
+import metadata.KoinMetaData
 import java.io.OutputStream
 
 class KoinCodeGenerator(
@@ -52,7 +60,6 @@ class KoinCodeGenerator(
             if (index == 0) {
                 codeGenerator.getDefaultFile().apply {
                     appendText(DEFAULT_MODULE_HEADER)
-                    appendText("\n\t\t" + DEFAULT_MODULE_FOOTER)
                 }
             }
             logger.warn("generate $def")
@@ -61,7 +68,6 @@ class KoinCodeGenerator(
             }
             if (index == definitions.size - 1) {
                 codeGenerator.getDefaultFile().apply {
-                    appendText("\n\t\t}\n")
                     appendText(DEFAULT_MODULE_FOOTER)
                 }
             }

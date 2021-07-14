@@ -1,3 +1,5 @@
+package metadata
+
 import com.google.devtools.ksp.symbol.KSDeclaration
 
 enum class KoinDefinitionAnnotation {
@@ -64,8 +66,17 @@ sealed class KoinMetaData {
                 packageName: String,
                 className: String,
                 constructorParameters: List<ConstructorParameter> = emptyList(),
+                val createdAtStart : Boolean = false,
                 bindings: List<KSDeclaration>
             ) : ClassDeclarationDefinition(packageName, "single", className, constructorParameters, bindings)
+
+            class Factory(
+                packageName: String,
+                className: String,
+                constructorParameters: List<ConstructorParameter> = emptyList(),
+                val createdAtStart : Boolean = false,
+                bindings: List<KSDeclaration>
+            ) : ClassDeclarationDefinition(packageName, "factory", className, constructorParameters, bindings)
         }
     }
 

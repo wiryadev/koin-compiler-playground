@@ -6,10 +6,6 @@ import org.koin.dsl.module
 
 class TestMe
 
-//@ComponentScan
-//val testModule = module {
-//    useGeneratedComponents()
-//}
 
 @Module
 class ClassModule3 {

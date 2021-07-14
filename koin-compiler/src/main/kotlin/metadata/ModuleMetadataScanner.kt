@@ -1,5 +1,10 @@
+package metadata
+
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.symbol.*
+import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSType
 
 class ModuleMetadataScanner(
     val logger: KSPLogger
@@ -10,7 +15,8 @@ class ModuleMetadataScanner(
         logger.warn("module(Class) -> $element", element)
         val modulePackage = declaration.containingFile?.packageName?.asString() ?: ""
 
-        val useComponentScan = (declaration.annotations.firstOrNull { it.shortName.asString() == "ComponentScan" } != null)
+        val useComponentScan =
+            (declaration.annotations.firstOrNull { it.shortName.asString() == "ComponentScan" } != null)
         logger.warn("module(Class) useComponentScan=$useComponentScan", element)
 
         val name = "$element"
@@ -23,7 +29,11 @@ class ModuleMetadataScanner(
 
         val annotatedFunctions = declaration.getAllFunctions()
             .filter {
-                it.annotations.map { a -> a.shortName.asString() }.any { a -> KoinDefinitionAnnotation.isValidAnnotation(a) }
+                it.annotations.map { a -> a.shortName.asString() }.any { a ->
+                    KoinDefinitionAnnotation.isValidAnnotation(
+                        a
+                    )
+                }
             }
             .toList()
 
@@ -44,16 +54,19 @@ class ModuleMetadataScanner(
         return type?.let {
             val functionName = ksFunctionDeclaration.simpleName.asString()
 
-            element.getDefinitionAnnotation()?.let { (name,annotation) ->
+            element.getDefinitionAnnotation()?.let { (name, annotation) ->
                 logger.warn("definition(function) -> kind $name", annotation)
                 logger.warn("definition(function) -> kind ${annotation.arguments}", annotation)
 
+                val binds = annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
+                logger.warn("definition(function) -> binds=$binds", annotation)
+
                 when (KoinDefinitionAnnotation.valueOf(name)) {
                     KoinDefinitionAnnotation.Single -> {
-                        val createdAtStart: Boolean = annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean? ?: false
-                        val binds = annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
+                        val createdAtStart: Boolean =
+                            annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean?
+                                ?: false
                         logger.warn("definition(function) -> createdAtStart=$createdAtStart", annotation)
-                        logger.warn("definition(function) -> binds=$binds", annotation)
                         KoinMetaData.Definition.FunctionDeclarationDefinition.Single(
                             packageName = packageName,
                             functionName = functionName,
@@ -64,7 +77,6 @@ class ModuleMetadataScanner(
                         )
                     }
                     KoinDefinitionAnnotation.Factory -> {
-                        val binds = annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
                         KoinMetaData.Definition.FunctionDeclarationDefinition.Factory(
                             packageName = packageName,
                             functionName = functionName,
@@ -77,14 +89,5 @@ class ModuleMetadataScanner(
                 }
             }
         }
-    }
-}
-
-private fun KSAnnotated.getDefinitionAnnotation(): Pair<String,KSAnnotation>? {
-    return try {
-        val a = annotations.firstOrNull { a -> KoinDefinitionAnnotation.isValidAnnotation(a.shortName.asString()) }
-        a?.let { Pair(a.shortName.asString(),a) }
-    } catch (e: Exception) {
-        null
     }
 }

@@ -5,7 +5,10 @@ import org.koin.core.component.inject
 import org.koin.core.context.startKoin
 import org.koin.core.time.measureDuration
 import org.koin.example.coffee.CoffeeAppModule
+//import org.koin.example.coffee.CoffeeAppModule
 import org.koin.example.coffee.CoffeeMaker
+import org.koin.example.test.ClassModule2
+import org.koin.example.test.ClassModule3
 import org.koin.ksp.generated.*
 
 class CoffeeApp : KoinComponent {
@@ -20,6 +23,8 @@ fun main() {
         // else let's use some modules
         modules(
             CoffeeAppModule().module,
+            ClassModule2().module,
+            ClassModule3().module,
         )
     }
 
