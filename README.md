@@ -2,7 +2,22 @@
 
 The goal of Koin compiler & Annotations project is to help declare Koin definition in a very fast and intuitive way, and generate all underlying Koin DSL.
 
-## Current Annotation Processing - Use Cases
+## Koin Annotation Processing 🚀
+
+### Automatic definition binding
+
+When taging a component to be defined in Koin, we can easily declare all related supertypes directly:
+
+```kotlin
+@Single
+class ElectricHeater : Heater 
+```
+
+would generate definition:
+
+```kotlin
+single { ElectricHeater() } bind Heater::class
+```
 
 ### Using Koin generated content
 
@@ -20,7 +35,7 @@ fun main() {
 }
 ```
 
-### quickstart: just annotated definitions
+### Only annotated definitions
 
 We need to use a default module with `defaultModule()` extension:
 
@@ -62,24 +77,7 @@ val defaultModule = module {
 }
 ```
 
-### `@Single` generating definition and bindings
-
-When annotating a component with `@Single`, it will generates definition for given class instance and bind all extended types:
-
-```kotlin
-@Single
-class Thermosiphon(private val heater: Heater) : Pump
-```
-
-what is generated:
-
-```kotlin
-single { org.koin.example.coffee.pump.Thermosiphon(get()) } bind(org.koin.example.coffee.pump.Pump::class)
-```
-
-later we can specify `binds` property in the annotation, to specify the desired bound type for the definition.
-
-### Class Module & declare definitions
+### Class Module and functions as definitions
 
 We want to use a `CoffeeAppModule` module class. The `.module` extension on `CoffeeAppModule` class will be generated:
 
@@ -128,7 +126,7 @@ val CoffeeAppModuleModule = module {
 val org.koin.example.coffee.CoffeeAppModule.module : org.koin.core.module.Module get() = CoffeeAppModuleModule
 ```
 
-### Class Module & Scan all definitions
+### Scan all definitions into a Class Module
 
 Rather than defining each component, we can allow a module to scan definitions for current package and sub packages:
 
@@ -167,7 +165,7 @@ val CoffeeAppModuleModule = module {
 val org.koin.example.coffee.CoffeeAppModule.module : org.koin.core.module.Module get() = CoffeeAppModuleModule
 ```
 
-### Unmatched definitions in default module
+### Unmatched definitions fallback in default module
 
 In case of using `@ComponentScan`, if any definition is tagged but not associated to a declared module, this definition will fallback into the `defaultModule`
 
@@ -188,7 +186,7 @@ fun main() {
 }
 ```
 
-### Class Module, mixing declared & scanned definition
+### Class Module, mixing declarations
 
 As with previous case:
 
@@ -234,7 +232,7 @@ class ElectricHeater : Heater
 
 Generated content will add all definitions for module generation, like previous case.
 
-### Multiple Modules
+### Multiple Class Modules
 
 Any class module tagged with `@Module` will be generated. Just import the module like follow:
 
@@ -259,7 +257,7 @@ startKoin {
 }
 ```
 
-## TODO
+## TODO 🚧
 
 Basic Definition Creation:
 - Definition

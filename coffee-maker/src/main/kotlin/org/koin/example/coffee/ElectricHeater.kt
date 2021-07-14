@@ -2,7 +2,7 @@ package org.koin.example.coffee
 
 import org.koin.core.annotation.Single
 
-@Single
+//@Single
 class ElectricHeater : Heater {
 
     private var heating: Boolean = false

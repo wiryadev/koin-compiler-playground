@@ -11,6 +11,9 @@ import org.koin.example.coffee.pump.Pump
 @ComponentScan
 class CoffeeAppModule {
 
-    @Factory
-    fun coffeMaker(heater: Heater,pump: Pump) = CoffeeMaker(pump, heater)
+    @Single(createdAtStart = true)
+    fun coffeeMaker(heater: Heater,pump: Pump) = CoffeeMaker(pump, heater)
+
+    @Single(binds = [Heater::class])
+    fun heater() = ElectricHeater()
 }

@@ -5,6 +5,7 @@ enum class KoinDefinitionAnnotation {
 
     companion object {
         val allValues : List<String> = values().map { it.toString() }
+        fun isValidAnnotation(s : String) : Boolean = s in allValues
     }
 }
 
@@ -20,7 +21,8 @@ sealed class KoinMetaData {
 
     sealed class Definition(
         val packageName: String,
-        val keyword: String
+        val keyword: String,
+        val bindings: List<KSDeclaration>
     ) : KoinMetaData() {
 
         sealed class FunctionDeclarationDefinition(
@@ -29,14 +31,25 @@ sealed class KoinMetaData {
             val functionName: String,
             val parameters: List<ConstructorParameter> = emptyList(),
             val returnedType: String,
-        ) : Definition(packageName, keyword) {
+            bindings: List<KSDeclaration>
+        ) : Definition(packageName, keyword, bindings) {
 
             class Single(
                 packageName: String,
                 functionName: String,
                 functionParameters: List<ConstructorParameter> = emptyList(),
                 returnedType: String,
-            ) : FunctionDeclarationDefinition(packageName, "single", functionName, functionParameters, returnedType)
+                val createdAtStart : Boolean = false,
+                bindings: List<KSDeclaration>
+            ) : FunctionDeclarationDefinition(packageName, "single", functionName, functionParameters, returnedType,bindings)
+
+            class Factory(
+                packageName: String,
+                functionName: String,
+                functionParameters: List<ConstructorParameter> = emptyList(),
+                returnedType: String,
+                bindings: List<KSDeclaration>
+            ) : FunctionDeclarationDefinition(packageName, "factory", functionName, functionParameters, returnedType,bindings)
         }
 
         sealed class ClassDeclarationDefinition(
@@ -44,8 +57,8 @@ sealed class KoinMetaData {
             keyword: String,
             val className: String,
             val constructorParameters: List<ConstructorParameter> = emptyList(),
-            val bindings: List<KSDeclaration>,
-        ) : Definition(packageName, keyword) {
+            bindings: List<KSDeclaration>,
+        ) : Definition(packageName, keyword,bindings) {
 
             class Single(
                 packageName: String,
@@ -53,10 +66,6 @@ sealed class KoinMetaData {
                 constructorParameters: List<ConstructorParameter> = emptyList(),
                 bindings: List<KSDeclaration>
             ) : ClassDeclarationDefinition(packageName, "single", className, constructorParameters, bindings)
-        }
-
-        enum class DefinitionKeyword {
-            SINGLE, FAC
         }
     }
 
