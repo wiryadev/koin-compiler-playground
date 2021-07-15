@@ -1,15 +1,14 @@
 package org.koin.example.test
 
 import org.koin.core.annotation.*
-import org.koin.dsl.module
 
 
-class TestMe
+class TestComponent
 
 
 @Module
-class ClassModule3 {
+class ExternalModule {
 
     @Single
-    fun testme2() = TestMe()
+    fun testComponent() = TestComponent()
 }

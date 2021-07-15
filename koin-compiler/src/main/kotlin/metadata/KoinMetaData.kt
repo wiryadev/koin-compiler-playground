@@ -2,15 +2,6 @@ package metadata
 
 import com.google.devtools.ksp.symbol.KSDeclaration
 
-enum class KoinDefinitionAnnotation {
-    Single, Factory;
-
-    companion object {
-        val allValues : List<String> = values().map { it.toString() }
-        fun isValidAnnotation(s : String) : Boolean = s in allValues
-    }
-}
-
 sealed class KoinMetaData {
 
     data class Module(
@@ -18,8 +9,19 @@ sealed class KoinMetaData {
         val name: String,
         val definitions: MutableList<Definition> = mutableListOf(),
         val type: ModuleType = ModuleType.FIELD,
-        val componentScan: Boolean = false
-    ) : KoinMetaData()
+        val componentScan: ComponentScan? = null
+    ) : KoinMetaData(){
+        data class ComponentScan(val packageName : String = "")
+
+        fun acceptDefinition(defPackageName : String) : Boolean {
+            return when {
+                componentScan == null -> false
+                componentScan.packageName.isNotEmpty() -> defPackageName.contains(componentScan.packageName, ignoreCase = true)
+                componentScan.packageName.isEmpty() -> defPackageName.contains(packageName,ignoreCase = true)
+                else -> false
+            }
+        }
+    }
 
     sealed class Definition(
         val packageName: String,
@@ -32,7 +34,6 @@ sealed class KoinMetaData {
             keyword: String,
             val functionName: String,
             val parameters: List<ConstructorParameter> = emptyList(),
-            val returnedType: String,
             bindings: List<KSDeclaration>
         ) : Definition(packageName, keyword, bindings) {
 
@@ -40,18 +41,16 @@ sealed class KoinMetaData {
                 packageName: String,
                 functionName: String,
                 functionParameters: List<ConstructorParameter> = emptyList(),
-                returnedType: String,
                 val createdAtStart : Boolean = false,
                 bindings: List<KSDeclaration>
-            ) : FunctionDeclarationDefinition(packageName, "single", functionName, functionParameters, returnedType,bindings)
+            ) : FunctionDeclarationDefinition(packageName, "single", functionName, functionParameters, bindings)
 
             class Factory(
                 packageName: String,
                 functionName: String,
                 functionParameters: List<ConstructorParameter> = emptyList(),
-                returnedType: String,
                 bindings: List<KSDeclaration>
-            ) : FunctionDeclarationDefinition(packageName, "factory", functionName, functionParameters, returnedType,bindings)
+            ) : FunctionDeclarationDefinition(packageName, "factory", functionName, functionParameters, bindings)
         }
 
         sealed class ClassDeclarationDefinition(
@@ -74,7 +73,6 @@ sealed class KoinMetaData {
                 packageName: String,
                 className: String,
                 constructorParameters: List<ConstructorParameter> = emptyList(),
-                val createdAtStart : Boolean = false,
                 bindings: List<KSDeclaration>
             ) : ClassDeclarationDefinition(packageName, "factory", className, constructorParameters, bindings)
         }

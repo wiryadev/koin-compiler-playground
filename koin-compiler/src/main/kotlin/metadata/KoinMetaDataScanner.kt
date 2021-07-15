@@ -56,7 +56,7 @@ class KoinMetaDataScanner(
 
     private fun addToModule(definition: KoinMetaData.Definition, defaultModule: KoinMetaData.Module) {
         val definitionPackage = definition.packageName
-        val foundModule = moduleMap.values.firstOrNull { definitionPackage.contains(it.packageName) && it.componentScan }
+        val foundModule = moduleMap.values.firstOrNull { it.acceptDefinition(definitionPackage) }
         val module = foundModule ?: defaultModule
         logger.warn("single(class) -> $definition -> module $module")
         module.definitions.add(definition)

@@ -4,9 +4,15 @@ The goal of Koin compiler & Annotations project is to help declare Koin definiti
 
 ## Koin Annotation Processing 🚀
 
+Koin code generation is mostly instant for Koin: just a few lines to generate. It is really easily readable/debuggable. 
+
+Even with ~~1000 of definitions, project compilation has almost no impact. 
+
+Here with such power from Ksp project, we can bring ease even more Kotlin dependency injection. We keep Koin API as it. We just avoid you to write definitions and modules.
+
 ### Automatic definition binding
 
-When taging a component to be defined in Koin, we can easily declare all related supertypes directly:
+When tagging a component to be defined in Koin, we can easily declare all related supertypes directly:
 
 ```kotlin
 @Single
@@ -19,7 +25,7 @@ would generate definition:
 single { ElectricHeater() } bind Heater::class
 ```
 
-### Using Koin generated content
+### Using generated content
 
 The only thing to setup in particular is the `org.koin.ksp.generated.*` import as follow, to be able to use genrated extensions:
 
@@ -35,7 +41,7 @@ fun main() {
 }
 ```
 
-### Only annotated definitions
+### Annotated definitions without modules
 
 We need to use a default module with `defaultModule()` extension:
 
@@ -165,6 +171,14 @@ val CoffeeAppModuleModule = module {
 val org.koin.example.coffee.CoffeeAppModule.module : org.koin.core.module.Module get() = CoffeeAppModuleModule
 ```
 
+We can also specify what package to scan in `@ComponentScan` value. Below we scan annotated components in `org.koin.example.test` package:
+
+```kotlin
+@Module
+@ComponentScan("org.koin.example.test")
+class CoffeeAppModule
+```
+
 ### Unmatched definitions fallback in default module
 
 In case of using `@ComponentScan`, if any definition is tagged but not associated to a declared module, this definition will fallback into the `defaultModule`
@@ -259,13 +273,11 @@ startKoin {
 
 ## TODO 🚧
 
-Basic Definition Creation:
-- Definition
-    - Binds
-    - Create at start 
-- Qualifier / String Qualifier (@Qualifier)
-  - Ctor
-  - Fun
+Basic Definition Options:
+- Create at start
+- Qualifier (@Qualifier)
+=> Type & Function  
+  
 - Generic for other keywords with factory (help for later Android)
 - Android Keywords
     - @ViewModel
@@ -283,10 +295,6 @@ Scope Structure (@Scope)
 - @Scope on a type
 - @ScopedIn?
 - @ScopedIn for factory definitions? (visibility problem)
-
-Other:
-- clean up warn message to log info
-- better core compiler code/refacto
 
 
 

@@ -15,16 +15,16 @@ class ModuleMetadataScanner(
         logger.warn("module(Class) -> $element", element)
         val modulePackage = declaration.containingFile?.packageName?.asString() ?: ""
 
-        val useComponentScan =
-            (declaration.annotations.firstOrNull { it.shortName.asString() == "ComponentScan" } != null)
-        logger.warn("module(Class) useComponentScan=$useComponentScan", element)
+        val componentScan =
+            getComponentScan(declaration)
+        logger.warn("module(Class) componentScan=$componentScan", element)
 
         val name = "$element"
         val moduleMetadata = KoinMetaData.Module(
             packageName = modulePackage,
             name = name,
             type = KoinMetaData.ModuleType.CLASS,
-            componentScan = useComponentScan
+            componentScan = componentScan
         )
 
         val annotatedFunctions = declaration.getAllFunctions()
@@ -44,14 +44,22 @@ class ModuleMetadataScanner(
         return ModuleIndex(modulePackage, moduleMetadata)
     }
 
+    private fun getComponentScan(declaration: KSClassDeclaration): KoinMetaData.Module.ComponentScan? {
+        val componentScan = declaration.annotations.firstOrNull { it.shortName.asString() == "ComponentScan" }
+        return componentScan?.let { a ->
+            val value : String = a.arguments.firstOrNull { arg -> arg.name?.asString() == "value" }?.value as? String? ?: ""
+            KoinMetaData.Module.ComponentScan(value)
+        }
+    }
+
     private fun addDefinition(element: KSAnnotated): KoinMetaData.Definition? {
         logger.warn("definition(function) -> $element", element)
 
         val ksFunctionDeclaration = (element as KSFunctionDeclaration)
         val packageName = ksFunctionDeclaration.containingFile!!.packageName.asString()
-        val type = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
+        val returnedType = ksFunctionDeclaration.returnType?.resolve()?.declaration?.simpleName?.toString()
 
-        return type?.let {
+        return returnedType?.let {
             val functionName = ksFunctionDeclaration.simpleName.asString()
 
             element.getDefinitionAnnotation()?.let { (name, annotation) ->
@@ -71,7 +79,6 @@ class ModuleMetadataScanner(
                             packageName = packageName,
                             functionName = functionName,
                             functionParameters = ksFunctionDeclaration.parameters.map { KoinMetaData.ConstructorParameter() },
-                            returnedType = type,
                             createdAtStart = createdAtStart,
                             bindings = binds?.map { it.declaration } ?: emptyList()
                         )
@@ -81,7 +88,6 @@ class ModuleMetadataScanner(
                             packageName = packageName,
                             functionName = functionName,
                             functionParameters = ksFunctionDeclaration.parameters.map { KoinMetaData.ConstructorParameter() },
-                            returnedType = type,
                             bindings = binds?.map { it.declaration } ?: emptyList()
                         )
                     }

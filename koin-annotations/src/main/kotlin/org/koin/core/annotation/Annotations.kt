@@ -17,11 +17,11 @@ annotation class Qualifier(val value: String = "")
 
 @Target(AnnotationTarget.VALUE_PARAMETER)
 annotation class Param()
+
 @Target(AnnotationTarget.VALUE_PARAMETER)
 annotation class Property(val value: String = "")
 
 @Target(AnnotationTarget.CLASS)
 annotation class Module()
-
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
-annotation class ComponentScan()
+annotation class ComponentScan(val value: String = "")
