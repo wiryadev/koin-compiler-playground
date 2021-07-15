@@ -65,7 +65,7 @@ sealed class KoinMetaData {
                 packageName: String,
                 className: String,
                 constructorParameters: List<ConstructorParameter> = emptyList(),
-                val createdAtStart : Boolean = false,
+                val createdAtStart : Boolean,
                 bindings: List<KSDeclaration>
             ) : ClassDeclarationDefinition(packageName, "single", className, constructorParameters, bindings)
 

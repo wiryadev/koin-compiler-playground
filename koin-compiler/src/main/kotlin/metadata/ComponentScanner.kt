@@ -5,12 +5,12 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSType
 
-class ComponentMetadataScanner(
+class ComponentScanner(
     val logger: KSPLogger,
 ) {
 
     fun createDefinition(element: KSAnnotated): KoinMetaData.Definition {
-        logger.warn("single(class) -> $element", element)
+        logger.warn("definition(class) -> $element", element)
         val ksClassDeclaration = (element as KSClassDeclaration)
         val packageName = ksClassDeclaration.containingFile!!.packageName.asString()
         val className = ksClassDeclaration.simpleName.asString()
@@ -33,7 +33,7 @@ class ComponentMetadataScanner(
                     )
                 }
                 KoinDefinitionAnnotation.Factory -> {
-                    KoinMetaData.Definition.ClassDeclarationDefinition.Single(
+                    KoinMetaData.Definition.ClassDeclarationDefinition.Factory(
                         packageName = packageName,
                         className = className,
                         constructorParameters = ksClassDeclaration.primaryConstructor?.parameters?.map { KoinMetaData.ConstructorParameter() }

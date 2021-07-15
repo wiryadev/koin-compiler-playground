@@ -6,7 +6,7 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSType
 
-class ModuleMetadataScanner(
+class ModuleScanner(
     val logger: KSPLogger
 ) {
 

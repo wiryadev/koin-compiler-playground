@@ -10,10 +10,12 @@ val DEFINITION_ANNOTATION_LIST = listOf<KClass<*>>(
 )
 
 enum class KoinDefinitionAnnotation {
-    Single, Factory;
+    Single,
+    Factory
+    ;
 
     companion object {
-        val allValues : List<String> = values().map { it.toString() }
+        private val allValues : List<String> = values().map { it.toString() }
         fun isValidAnnotation(s : String) : Boolean = s in allValues
     }
 }
