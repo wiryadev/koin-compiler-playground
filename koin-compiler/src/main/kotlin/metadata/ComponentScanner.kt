@@ -14,17 +14,20 @@ class ComponentScanner(
         val ksClassDeclaration = (element as KSClassDeclaration)
         val packageName = ksClassDeclaration.containingFile!!.packageName.asString()
         val className = ksClassDeclaration.simpleName.asString()
+        val qualifier = ksClassDeclaration.getStringQualifier()
+        logger.warn("definition(class) qualifier -> $qualifier", element)
         return element.getDefinitionAnnotation()?.let { (name, annotation) ->
             val declaredBindings =
                 annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
             val defaultBindings = ksClassDeclaration.superTypes.map { it.resolve().declaration }.toList()
-            when (KoinDefinitionAnnotation.valueOf(name)) {
-                KoinDefinitionAnnotation.Single -> {
+            when (DefinitionAnnotation.valueOf(name)) {
+                DefinitionAnnotation.Single -> {
                     val createdAtStart: Boolean =
                         annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean?
                             ?: false
                     KoinMetaData.Definition.ClassDeclarationDefinition.Single(
                         packageName = packageName,
+                        qualifier = qualifier,
                         className = className,
                         constructorParameters = ksClassDeclaration.primaryConstructor?.parameters?.map { KoinMetaData.ConstructorParameter() }
                             ?: emptyList(),
@@ -32,9 +35,10 @@ class ComponentScanner(
                         createdAtStart = createdAtStart
                     )
                 }
-                KoinDefinitionAnnotation.Factory -> {
+                DefinitionAnnotation.Factory -> {
                     KoinMetaData.Definition.ClassDeclarationDefinition.Factory(
                         packageName = packageName,
+                        qualifier = qualifier,
                         className = className,
                         constructorParameters = ksClassDeclaration.primaryConstructor?.parameters?.map { KoinMetaData.ConstructorParameter() }
                             ?: emptyList(),

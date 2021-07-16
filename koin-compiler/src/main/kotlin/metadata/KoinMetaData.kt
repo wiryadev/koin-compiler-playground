@@ -25,56 +25,63 @@ sealed class KoinMetaData {
 
     sealed class Definition(
         val packageName: String,
+        val qualifier : String? = null,
         val keyword: String,
         val bindings: List<KSDeclaration>
     ) : KoinMetaData() {
 
         sealed class FunctionDeclarationDefinition(
             packageName: String,
+            qualifier : String?,
             keyword: String,
             val functionName: String,
             val parameters: List<ConstructorParameter> = emptyList(),
             bindings: List<KSDeclaration>
-        ) : Definition(packageName, keyword, bindings) {
+        ) : Definition(packageName, qualifier,keyword, bindings) {
 
             class Single(
                 packageName: String,
+                qualifier : String?,
                 functionName: String,
                 functionParameters: List<ConstructorParameter> = emptyList(),
                 val createdAtStart : Boolean = false,
                 bindings: List<KSDeclaration>
-            ) : FunctionDeclarationDefinition(packageName, "single", functionName, functionParameters, bindings)
+            ) : FunctionDeclarationDefinition(packageName, qualifier,"single", functionName, functionParameters, bindings)
 
             class Factory(
                 packageName: String,
+                qualifier : String?,
                 functionName: String,
                 functionParameters: List<ConstructorParameter> = emptyList(),
                 bindings: List<KSDeclaration>
-            ) : FunctionDeclarationDefinition(packageName, "factory", functionName, functionParameters, bindings)
+            ) : FunctionDeclarationDefinition(packageName, qualifier,"factory", functionName, functionParameters, bindings)
         }
 
         sealed class ClassDeclarationDefinition(
             packageName: String,
+            qualifier : String?,
             keyword: String,
             val className: String,
             val constructorParameters: List<ConstructorParameter> = emptyList(),
             bindings: List<KSDeclaration>,
-        ) : Definition(packageName, keyword,bindings) {
+        ) : Definition(packageName, qualifier, keyword,bindings) {
 
             class Single(
                 packageName: String,
+                qualifier : String?,
                 className: String,
                 constructorParameters: List<ConstructorParameter> = emptyList(),
                 val createdAtStart : Boolean,
                 bindings: List<KSDeclaration>
-            ) : ClassDeclarationDefinition(packageName, "single", className, constructorParameters, bindings)
+            ) : ClassDeclarationDefinition(packageName, qualifier,"single", className, constructorParameters, bindings)
 
             class Factory(
                 packageName: String,
+                qualifier : String?,
                 className: String,
                 constructorParameters: List<ConstructorParameter> = emptyList(),
                 bindings: List<KSDeclaration>
-            ) : ClassDeclarationDefinition(packageName, "factory", className, constructorParameters, bindings)
+            ) : ClassDeclarationDefinition(packageName, qualifier,"factory", className, constructorParameters, bindings)
         }
     }
 

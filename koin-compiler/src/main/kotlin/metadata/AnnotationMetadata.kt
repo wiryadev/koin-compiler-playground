@@ -9,7 +9,7 @@ val DEFINITION_ANNOTATION_LIST = listOf<KClass<*>>(
     Factory::class
 )
 
-enum class KoinDefinitionAnnotation {
+enum class DefinitionAnnotation {
     Single,
     Factory
     ;

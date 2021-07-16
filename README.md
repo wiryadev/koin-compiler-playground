@@ -273,7 +273,7 @@ startKoin {
 
 ## TODO 🚧
 
-Basic Definition Options:
+Basic Definition Options: (In Progress)
 - Create at start
 - Qualifier (@Qualifier)
 => Type & Function  
