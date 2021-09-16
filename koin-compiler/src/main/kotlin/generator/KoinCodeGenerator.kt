@@ -7,6 +7,7 @@ val DEFAULT_MODULE_HEADER = """
     
         import org.koin.core.KoinApplication
         import org.koin.core.module.Module
+        import org.koin.core.qualifier.StringQualifier
         import org.koin.dsl.module
         import org.koin.dsl.bind
         import org.koin.dsl.binds
@@ -20,9 +21,13 @@ val DEFAULT_MODULE_FOOTER = """
     """.trimIndent()
 
 fun OutputStream.generateFunctionDeclarationDefinition(def: KoinMetaData.Definition.FunctionDeclarationDefinition) {
-    val ctor = generateConstructor(def.parameters)
+    val ctor = generateClassConstructor(def.parameters)
     val binds = generateBindings(def.bindings)
-    appendText("\n\t\t\t\t${def.keyword} { moduleInstance.${def.functionName}$ctor } $binds")
+    val qualifier = def.qualifier.generateQualifier()
+    val createAtStart = if (def is KoinMetaData.Definition.FunctionDeclarationDefinition.Single){
+        if (def.createdAtStart) CREATED_AT_START else ""
+    } else ""
+    appendText("\n\t\t\t\t${def.keyword}($qualifier$createAtStart) { moduleInstance.${def.functionName}$ctor } $binds")
 }
 
 
@@ -30,9 +35,22 @@ fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition
     val param =
         if (def.constructorParameters.filter { it.type == KoinMetaData.ConstructorParameterType.PARAMETER_INJECT }
                 .isEmpty()) "" else " params ->"
-    val ctor = generateConstructor(def.constructorParameters)
+    val ctor = generateClassConstructor(def.constructorParameters)
     val binds = generateBindings(def.bindings)
-    appendText("\n\t\t\t\t${def.keyword} { $param${def.packageName}.${def.className}$ctor } $binds")
+    val qualifier = def.qualifier.generateQualifier()
+    val createAtStart = if (def is KoinMetaData.Definition.ClassDeclarationDefinition.Single){
+        if (def.createdAtStart) CREATED_AT_START else ""
+    } else ""
+    appendText("\n\t\t\t\t${def.keyword}($qualifier$createAtStart) { $param${def.packageName}.${def.className}$ctor } $binds")
+}
+
+const val CREATED_AT_START=",createdAtStart=true"
+
+fun String?.generateQualifier():String = when {
+    this == "\"null\"" -> "qualifier=null"
+    this == "null" -> "qualifier=null"
+    !this.isNullOrBlank() -> "qualifier=StringQualifier(\"$this\")"
+    else -> "qualifier=null"
 }
 
 fun generateClassModule(classFile: OutputStream,module: KoinMetaData.Module) {
@@ -40,6 +58,8 @@ fun generateClassModule(classFile: OutputStream,module: KoinMetaData.Module) {
         """
             package org.koin.ksp.generated
             import org.koin.dsl.*
+            import org.koin.core.qualifier.StringQualifier
+            
         """.trimIndent()
     )
     val generatedField = "${module.name}Module"
@@ -73,7 +93,7 @@ fun generateBinding(declaration: KSDeclaration): String {
     return "$packageName.$className::class"
 }
 
-fun generateConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
+fun generateClassConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
     return constructorParameters.joinToString(prefix = "(", separator = ",", postfix = ")") {
         if (it.type == KoinMetaData.ConstructorParameterType.DEPENDENCY) "get()" else "params.get()"
     }

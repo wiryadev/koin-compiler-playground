@@ -41,7 +41,7 @@ fun main() {
 }
 ```
 
-### Annotated definitions without modules
+### Running definitions without any module
 
 We need to use a default module with `defaultModule()` extension:
 
@@ -83,7 +83,7 @@ val defaultModule = module {
 }
 ```
 
-### Class Module and functions as definitions
+### Defining a module with a Class
 
 We want to use a `CoffeeAppModule` module class. The `.module` extension on `CoffeeAppModule` class will be generated:
 
@@ -132,7 +132,7 @@ val CoffeeAppModuleModule = module {
 val org.koin.example.coffee.CoffeeAppModule.module : org.koin.core.module.Module get() = CoffeeAppModuleModule
 ```
 
-### Scan all definitions into a Class Module
+### Scanning definitions
 
 Rather than defining each component, we can allow a module to scan definitions for current package and sub packages:
 
@@ -179,7 +179,7 @@ We can also specify what package to scan in `@ComponentScan` value. Below we sca
 class CoffeeAppModule
 ```
 
-### Unmatched definitions fallback in default module
+### Unmatched Definitions
 
 In case of using `@ComponentScan`, if any definition is tagged but not associated to a declared module, this definition will fallback into the `defaultModule`
 
@@ -200,7 +200,7 @@ fun main() {
 }
 ```
 
-### Class Module, mixing declarations
+### Mixing declarations in a Class Module
 
 As with previous case:
 
@@ -273,12 +273,11 @@ startKoin {
 
 ## TODO 🚧
 
-Basic Definition Options: (In Progress)
-- Create at start
-- Qualifier (@Qualifier)
-=> Type & Function  
+Basic Definition Options for Type & Functions: (In Progress)
+- Create at start ✅
+- Qualifier (@Qualifier) ✅
   
-- Generic for other keywords with factory (help for later Android)
+Other keywords
 - Android Keywords
     - @ViewModel
     - @Fragment

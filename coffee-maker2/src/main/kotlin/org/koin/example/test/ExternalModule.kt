@@ -9,6 +9,7 @@ class TestComponent
 @Module
 class ExternalModule {
 
-    @Single
+    @Single(createdAtStart = true)
+    @Qualifier("test")
     fun testComponent() = TestComponent()
 }
