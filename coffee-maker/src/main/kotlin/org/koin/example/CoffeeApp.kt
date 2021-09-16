@@ -20,6 +20,8 @@ class CoffeeApp : KoinComponent {
     val maker: CoffeeMaker by inject()
 }
 
+// be sure to import "import org.koin.ksp.generated.*"
+
 fun main() {
     startKoin {
         // if no module
