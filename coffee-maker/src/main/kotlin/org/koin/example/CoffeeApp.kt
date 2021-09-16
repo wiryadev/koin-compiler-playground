@@ -5,9 +5,11 @@ import org.koin.core.component.inject
 import org.koin.core.context.startKoin
 import org.koin.core.qualifier.StringQualifier
 import org.koin.core.time.measureDuration
-import org.koin.example.coffee.CoffeeAppModule
 import org.koin.example.coffee.CoffeeMaker
+import org.koin.example.di.CoffeeAppModule
 import org.koin.example.di.CoffeeTesterModule
+import org.koin.example.tea.TeaModule
+import org.koin.example.tea.TeaPot
 import org.koin.example.test.CoffeeMakerTester
 import org.koin.example.test.ExternalModule
 import org.koin.example.test.TestComponent
@@ -20,13 +22,14 @@ class CoffeeApp : KoinComponent {
 
 fun main() {
     startKoin {
-        printLogger()
-        // if we just want teh default module
+        // if no module
 //        defaultModule()
-        // else let's use some modules
+
+        // else let's use our modules
         modules(
             CoffeeAppModule().module,
             CoffeeTesterModule().module,
+            TeaModule().module,
             ExternalModule().module,
         )
     }
@@ -36,10 +39,9 @@ fun main() {
         coffeeShop.maker.brew()
     }
 
-    // other tests
-
-    // qualifier
+    // Tests
     val koin = KoinPlatformTools.defaultContext().get()
+    koin.get<TeaPot>().heater
     koin.get<CoffeeMakerTester>(StringQualifier("test"))
     koin.get<TestComponent>(StringQualifier("test"))
 }

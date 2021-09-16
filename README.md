@@ -262,7 +262,6 @@ Just use it with the `.module` generated extension:
 import org.koin.ksp.generated.*
 
 startKoin {
-  printLogger()
   modules(
     CoffeeAppModule().module,
     // new module here, with .module generated extension
@@ -276,7 +275,11 @@ startKoin {
 Basic Definition Options for Type & Functions: (In Progress)
 - Create at start ✅
 - Qualifier (@Qualifier) ✅
-  
+
+Class Module ✅
+- Component Scan ✅
+- Class modules in same packe, but different component scan ✅
+
 Other keywords
 - Android Keywords
     - @ViewModel
@@ -291,10 +294,8 @@ Property (@Property)
 - getProperty(key) <T>
 
 Scope Structure (@Scope)
-- @Scope on a type
-- @ScopedIn?
-- @ScopedIn for factory definitions? (visibility problem)
-
+- @Scope on a type T -> generated scoped { T } in given scope  
+- except if tagged @Factory, @ViewModel or any kind of factory component
 
 
 

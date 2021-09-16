@@ -20,7 +20,7 @@ class KoinCodeGenerator(
         moduleMap: Map<String, KoinMetaData.Module>,
         defaultModule: KoinMetaData.Module
     ) {
-        logger.warn("generate ${moduleMap.size} modules ...")
+        logger.warn("generate modules ...")
         moduleMap.values.forEachIndexed { index, module ->
             if (index == 0) {
                 val file = codeGenerator.getDefaultFile()

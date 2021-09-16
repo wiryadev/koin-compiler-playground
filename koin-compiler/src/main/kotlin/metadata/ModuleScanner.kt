@@ -34,11 +34,11 @@ class ModuleScanner(
             }
             .toList()
 
-        logger.warn("module(Class) -> $element | found functions: ${annotatedFunctions.size}", element)
+        logger.warn("module(Class) -> $element | found class functions: ${annotatedFunctions.size}", element)
         val definitions = annotatedFunctions.mapNotNull { addDefinition(it) }
         moduleMetadata.definitions += definitions
 
-        return ModuleIndex(modulePackage, moduleMetadata)
+        return ModuleIndex(componentScan?.packageName ?: modulePackage, moduleMetadata)
     }
 
     private fun getComponentScan(declaration: KSClassDeclaration): KoinMetaData.Module.ComponentScan? {
