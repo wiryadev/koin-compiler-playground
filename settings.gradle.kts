@@ -13,8 +13,8 @@ pluginManagement {
 
 rootProject.name = "playground"
 
-//include(":workload")
 include(":koin-annotations")
 include(":koin-compiler")
 include(":coffee-maker")
 include(":coffee-maker2")
+//include(":android-coffee-maker")

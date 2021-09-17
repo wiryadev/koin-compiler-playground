@@ -1,6 +1,40 @@
+# Gradle
 .gradle/
-.idea/
-build/
-*/build/
 
-/local.properties
+# IntelliJ IDEA
+/.idea/*
+**/*.iml
+
+# Android
+**/build/
+**/gen/
+captures/
+
+#delete local.properties form repo
+local.properties
+
+app-android-v3.iml
+.irb-history
+.transync.yml
+
+# Mac files
+.DS_Store
+BlaBlaCar/.DS_Store
+
+# Tests
+test_servers/
+
+# crashlytics file
+BlaBlaCar/src/main/assets/crashlytics-build.properties
+BlaBlaCar/src/main/res/values/com_crashlytics_export_strings.xml
+
+# Strings
+BlaBlaCar/src/main/assets/strings-*.json
+
+BlaBlaCar/spoon-output
+spoon-output
+fastlane/README.md
+
+# release automation
+build_direct_link.txt
+release_note_ticket_id.txt

@@ -17,21 +17,21 @@ class ComponentScanner(
         val qualifier = ksClassDeclaration.getStringQualifier()
         logger.warn("definition(class) qualifier -> $qualifier", element)
         return element.getDefinitionAnnotation()?.let { (name, annotation) ->
-            val declaredBindings =
-                annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
+            val declaredBindingsTypes = annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
+            val declaredBindings = declaredBindingsTypes?.map { it.declaration }
             val defaultBindings = ksClassDeclaration.superTypes.map { it.resolve().declaration }.toList()
             when (DefinitionAnnotation.valueOf(name)) {
                 DefinitionAnnotation.Single -> {
-                    val createdAtStart: Boolean =
-                        annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean?
-                            ?: false
+                    val createdAtStart: Boolean = annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean? ?: false
+                    val allBindings = if (declaredBindings?.isNotEmpty() == true) declaredBindings else defaultBindings
+                    logger.warn("definition(class) bindings -> $allBindings", element)
                     KoinMetaData.Definition.ClassDeclarationDefinition.Single(
                         packageName = packageName,
                         qualifier = qualifier,
                         className = className,
                         constructorParameters = ksClassDeclaration.primaryConstructor?.parameters?.map { KoinMetaData.ConstructorParameter() }
                             ?: emptyList(),
-                        bindings = declaredBindings?.map { it.declaration } ?: defaultBindings,
+                        bindings = allBindings,
                         createdAtStart = createdAtStart
                     )
                 }
@@ -42,7 +42,7 @@ class ComponentScanner(
                         className = className,
                         constructorParameters = ksClassDeclaration.primaryConstructor?.parameters?.map { KoinMetaData.ConstructorParameter() }
                             ?: emptyList(),
-                        bindings = declaredBindings?.map { it.declaration } ?: defaultBindings
+                        bindings = declaredBindings ?: defaultBindings
                     )
                 }
             }

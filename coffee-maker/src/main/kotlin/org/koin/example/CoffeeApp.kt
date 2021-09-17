@@ -11,6 +11,7 @@ import org.koin.example.di.CoffeeTesterModule
 import org.koin.example.tea.TeaModule
 import org.koin.example.tea.TeaPot
 import org.koin.example.test.CoffeeMakerTester
+import org.koin.example.test.CoffeeMakerTesterTest
 import org.koin.example.test.ExternalModule
 import org.koin.example.test.TestComponent
 import org.koin.ksp.generated.*
@@ -45,6 +46,7 @@ fun main() {
     val koin = KoinPlatformTools.defaultContext().get()
     koin.get<TeaPot>().heater
     koin.get<CoffeeMakerTester>(StringQualifier("test"))
+    koin.get<CoffeeMakerTesterTest>().coffeeTest()
     koin.get<TestComponent>(StringQualifier("test"))
 }
 
