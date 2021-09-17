@@ -45,6 +45,16 @@ class ComponentScanner(
                         bindings = declaredBindings ?: defaultBindings
                     )
                 }
+                DefinitionAnnotation.ViewModel -> {
+                    KoinMetaData.Definition.ClassDeclarationDefinition.ViewModel(
+                        packageName = packageName,
+                        qualifier = qualifier,
+                        className = className,
+                        constructorParameters = ksClassDeclaration.primaryConstructor?.parameters?.map { KoinMetaData.ConstructorParameter() }
+                            ?: emptyList(),
+                        bindings = declaredBindings ?: defaultBindings
+                    )
+                }
             }
         } ?: error("Can't create definition found for $element")
     }

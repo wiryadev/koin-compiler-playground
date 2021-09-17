@@ -27,7 +27,8 @@ sealed class KoinMetaData {
         val packageName: String,
         val qualifier : String? = null,
         val keyword: String,
-        val bindings: List<KSDeclaration>
+        val bindings: List<KSDeclaration>,
+        val isAndroidDefinition : Boolean = false
     ) : KoinMetaData() {
 
         sealed class FunctionDeclarationDefinition(
@@ -48,13 +49,23 @@ sealed class KoinMetaData {
                 bindings: List<KSDeclaration>
             ) : FunctionDeclarationDefinition(packageName, qualifier,"single", functionName, functionParameters, bindings)
 
-            class Factory(
+            open class Factory(
                 packageName: String,
                 qualifier : String?,
                 functionName: String,
                 functionParameters: List<ConstructorParameter> = emptyList(),
-                bindings: List<KSDeclaration>
-            ) : FunctionDeclarationDefinition(packageName, qualifier,"factory", functionName, functionParameters, bindings)
+                bindings: List<KSDeclaration>,
+                _keyword : String = "factory"
+            ) : FunctionDeclarationDefinition(packageName, qualifier,_keyword, functionName, functionParameters, bindings)
+
+            class ViewModel(
+                packageName: String,
+                qualifier : String?,
+                functionName: String,
+                functionParameters: List<ConstructorParameter> = emptyList(),
+                bindings: List<KSDeclaration>,
+                _keyword : String = "viewModel"
+            ) : Factory(packageName, qualifier, functionName, functionParameters, bindings, _keyword)
         }
 
         sealed class ClassDeclarationDefinition(
@@ -75,13 +86,24 @@ sealed class KoinMetaData {
                 bindings: List<KSDeclaration>
             ) : ClassDeclarationDefinition(packageName, qualifier,"single", className, constructorParameters, bindings)
 
-            class Factory(
+            open class Factory(
                 packageName: String,
                 qualifier : String?,
                 className: String,
                 constructorParameters: List<ConstructorParameter> = emptyList(),
-                bindings: List<KSDeclaration>
-            ) : ClassDeclarationDefinition(packageName, qualifier,"factory", className, constructorParameters, bindings)
+                bindings: List<KSDeclaration>,
+                _keyword : String = "factory",
+                _isAndroidDefinition : Boolean = false
+            ) : ClassDeclarationDefinition(packageName, qualifier,_keyword, className, constructorParameters, bindings)
+
+            class ViewModel(
+                packageName: String,
+                qualifier : String?,
+                className: String,
+                constructorParameters: List<ConstructorParameter> = emptyList(),
+                bindings: List<KSDeclaration>,
+                _keyword : String = "viewModel",
+            ) : Factory(packageName, qualifier, className, constructorParameters, bindings, _keyword)
         }
     }
 

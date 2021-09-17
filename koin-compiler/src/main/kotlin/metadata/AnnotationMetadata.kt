@@ -1,17 +1,18 @@
 package metadata
 
-import org.koin.core.annotation.Factory
-import org.koin.core.annotation.Single
+import org.koin.core.annotation.*
 import kotlin.reflect.KClass
 
 val DEFINITION_ANNOTATION_LIST = listOf<KClass<*>>(
     Single::class,
-    Factory::class
+    Factory::class,
+    ViewModel::class
 )
 
 enum class DefinitionAnnotation {
     Single,
-    Factory
+    Factory,
+    ViewModel
     ;
 
     companion object {

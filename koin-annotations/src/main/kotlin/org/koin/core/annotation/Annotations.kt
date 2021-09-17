@@ -6,6 +6,9 @@ import kotlin.reflect.KClass
 annotation class Single(val binds: Array<KClass<*>> = [], val createdAtStart: Boolean = false)
 @Target(AnnotationTarget.CLASS,AnnotationTarget.FUNCTION)
 annotation class Factory(val binds: Array<KClass<*>> = [])
+@Target(AnnotationTarget.CLASS,AnnotationTarget.FUNCTION)
+annotation class ViewModel(val binds: Array<KClass<*>> = [])
+
 
 @Target(AnnotationTarget.CLASS)
 annotation class Scope(val value: String = "")
