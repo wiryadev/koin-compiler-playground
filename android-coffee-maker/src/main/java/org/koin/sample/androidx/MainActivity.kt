@@ -1,14 +1,16 @@
 package org.koin.sample.androidx
 
 import android.os.Bundle
+import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.android.synthetic.main.main_activity.*
-import org.koin.sample.android.R
 
 class MainActivity : AppCompatActivity() {
 
     // inject & ViewModel
+
+    private val button : Button by lazy { findViewById(R.id.main_button) }
+    private val textView : TextView by lazy { findViewById(R.id.main_text) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -16,8 +18,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.main_activity)
         title = "Android Coffee Maker"
 
-        main_button.setOnClickListener {
-            findViewById<TextView>(R.id.main_text).text = "I need coffee"
+        button.setOnClickListener {
+            textView.text = "I need coffee"
         }
     }
 }

@@ -1,10 +1,12 @@
 buildscript {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
+        mavenLocal()
+//        jcenter()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:4.1.2")
+        classpath("com.android.tools.build:gradle:4.2.2")
     }
 }
 
@@ -13,7 +15,8 @@ plugins {
 }
 
 repositories {
-    mavenCentral()
     google()
+    mavenCentral()
+    mavenLocal()
 }
 
