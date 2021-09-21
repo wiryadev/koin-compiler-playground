@@ -14,7 +14,7 @@ fun OutputStream.generateFunctionDeclarationDefinition(
     val createAtStart = if (def is KoinMetaData.Definition.FunctionDeclarationDefinition.Single){
         if (def.createdAtStart) CREATED_AT_START else ""
     } else ""
-    appendText("\n\t\t\t\t${def.keyword.name}($qualifier$createAtStart) { moduleInstance.${def.functionName}$ctor } $binds")
+    appendText("\n\t\t\t\t${def.keyword.keyword}($qualifier$createAtStart) { moduleInstance.${def.functionName}$ctor } $binds")
 }
 
 
@@ -29,7 +29,7 @@ fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition
     val createAtStart = if (def is KoinMetaData.Definition.ClassDeclarationDefinition.Single){
         if (def.createdAtStart) CREATED_AT_START else ""
     } else ""
-    appendText("\n\t\t\t\t${def.keyword.name}($qualifier$createAtStart) { $param${def.packageName}.${def.className}$ctor } $binds")
+    appendText("\n\t\t\t\t${def.keyword.keyword}($qualifier$createAtStart) { $param${def.packageName}.${def.className}$ctor } $binds")
 }
 
 const val CREATED_AT_START=",createdAtStart=true"

@@ -1,7 +1,6 @@
 package org.koin.example.coffee
 
 import org.koin.core.annotation.Single
-import org.koin.core.annotation.ViewModel
 import org.koin.example.coffee.pump.Pump
 
 @Single

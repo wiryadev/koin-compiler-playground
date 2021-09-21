@@ -10,11 +10,15 @@ val DEFAULT_MODULE_HEADER = """
         import org.koin.dsl.bind
         import org.koin.dsl.binds
         
+    """.trimIndent()
+
+val DEFAULT_MODULE_FUNCTION = """
         fun KoinApplication.defaultModule() = modules(defaultModule)
         val defaultModule = module {
     """.trimIndent()
 
 val DEFAULT_MODULE_FOOTER = """
+    
         }
     """.trimIndent()
 

@@ -17,15 +17,16 @@ class ComponentScanner(
         val className = ksClassDeclaration.simpleName.asString()
         val qualifier = ksClassDeclaration.getStringQualifier()
         logger.warn("definition(class) qualifier -> $qualifier", element)
-        return element.getDefinitionAnnotation()?.let { (name, annotation) ->
+        return element.getDefinitionAnnotation()?.let { (annotationName, annotation) ->
+            logger.warn("definition(class) bindings ...", element)
             val declaredBindingsTypes = annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
             val declaredBindings = declaredBindingsTypes?.map { it.declaration }
             val defaultBindings = ksClassDeclaration.superTypes.map { it.resolve().declaration }.toList()
-            when (name.toLowerCase()) {
-                SINGLE.name -> {
+            val allBindings = if (declaredBindings?.isNotEmpty() == true) declaredBindings else defaultBindings
+            logger.warn("definition(class) bindings -> $allBindings", element)
+            when (annotationName) {
+                SINGLE.annotationName -> {
                     val createdAtStart: Boolean = annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean? ?: false
-                    val allBindings = if (declaredBindings?.isNotEmpty() == true) declaredBindings else defaultBindings
-                    logger.warn("definition(class) bindings -> $allBindings", element)
                     KoinMetaData.Definition.ClassDeclarationDefinition.Single(
                         packageName = packageName,
                         qualifier = qualifier,
@@ -36,7 +37,7 @@ class ComponentScanner(
                         createdAtStart = createdAtStart
                     )
                 }
-                FACTORY.name -> {
+                FACTORY.annotationName -> {
                     KoinMetaData.Definition.ClassDeclarationDefinition.Factory(
                         packageName = packageName,
                         qualifier = qualifier,
@@ -46,7 +47,7 @@ class ComponentScanner(
                         bindings = declaredBindings ?: defaultBindings
                     )
                 }
-                VIEWMODEL.name -> {
+                KOIN_VIEWMODEL.annotationName -> {
                     KoinMetaData.Definition.ClassDeclarationDefinition.ViewModel(
                         packageName = packageName,
                         qualifier = qualifier,
@@ -56,8 +57,8 @@ class ComponentScanner(
                         bindings = declaredBindings ?: defaultBindings
                     )
                 }
-                else -> error("Unknown annotation type: $name")
+                else -> error("Unknown annotation type: $annotationName")
             }
-        } ?: error("Can't create definition found for $element")
+        } ?: error("No valid definition annotation found for $element")
     }
 }

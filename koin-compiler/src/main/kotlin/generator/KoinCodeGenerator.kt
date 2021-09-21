@@ -6,7 +6,9 @@ import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
 import generateClassDeclarationDefinition
 import generateClassModule
+import generateDefaultModuleFooter
 import generateDefaultModuleForDefinitions
+import generateDefaultModuleHeader
 import generateFieldModule
 import metadata.KoinMetaData
 
@@ -26,14 +28,16 @@ class KoinCodeGenerator(
         logger.warn("generate modules ...")
         moduleMap.values.forEachIndexed { index, module ->
             if (index == 0) {
-                val file = codeGenerator.getDefaultFile()
-                file.appendText(DEFAULT_MODULE_HEADER)
+                if (defaultModule.definitions.isNotEmpty()){
+                    codeGenerator.getDefaultFile().generateDefaultModuleHeader()
+                }
             }
             generateModule(module)
             if (index == moduleMap.values.size - 1) {
                 generateModule(defaultModule)
-                val file = codeGenerator.getDefaultFile()
-                file.appendText("\n" + DEFAULT_MODULE_FOOTER)
+                if (defaultModule.definitions.isNotEmpty()) {
+                    codeGenerator.getDefaultFile().generateDefaultModuleFooter()
+                }
             }
         }
     }
@@ -46,7 +50,7 @@ class KoinCodeGenerator(
                     KoinMetaData.ModuleType.FIELD -> defaultFile.generateFieldModule(module)
                     KoinMetaData.ModuleType.CLASS -> {
                         val moduleFile = codeGenerator.getFile(fileName = "${module.name}Gen")
-                        generateClassModule(moduleFile, module, logger)
+                        generateClassModule(moduleFile, module)
                     }
                 }
             } else {

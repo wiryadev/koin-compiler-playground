@@ -64,7 +64,7 @@ sealed class KoinMetaData {
                 functionName: String,
                 functionParameters: List<ConstructorParameter> = emptyList(),
                 bindings: List<KSDeclaration>,
-                _keyword : DefinitionAnnotation = VIEWMODEL
+                _keyword : DefinitionAnnotation = KOIN_VIEWMODEL
             ) : Factory(packageName, qualifier, functionName, functionParameters, bindings, _keyword)
         }
 
@@ -102,7 +102,7 @@ sealed class KoinMetaData {
                 className: String,
                 constructorParameters: List<ConstructorParameter> = emptyList(),
                 bindings: List<KSDeclaration>,
-                _keyword : DefinitionAnnotation = VIEWMODEL,
+                _keyword : DefinitionAnnotation = KOIN_VIEWMODEL,
             ) : Factory(packageName, qualifier, className, constructorParameters, bindings, _keyword)
         }
     }

@@ -57,28 +57,28 @@ class ModuleScanner(
         return returnedType?.let {
             val functionName = ksFunctionDeclaration.simpleName.asString()
 
-            element.getDefinitionAnnotation()?.let { (name, annotation) ->
-                declareDefinition(name, annotation, packageName, qualifier, functionName, ksFunctionDeclaration)
+            element.getDefinitionAnnotation()?.let { (annotationName, annotation) ->
+                declareDefinition(annotationName, annotation, packageName, qualifier, functionName, ksFunctionDeclaration)
             }
         }
     }
 
     private fun declareDefinition(
-        name: String,
+        anootationNale: String,
         annotation: KSAnnotation,
         packageName: String,
         qualifier: String?,
         functionName: String,
         ksFunctionDeclaration: KSFunctionDeclaration
     ): KoinMetaData.Definition.FunctionDeclarationDefinition? {
-        logger.warn("definition(function) -> kind $name", annotation)
+        logger.warn("definition(function) -> kind $anootationNale", annotation)
         logger.warn("definition(function) -> kind ${annotation.arguments}", annotation)
 
         val binds = annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
         logger.warn("definition(function) -> binds=$binds", annotation)
 
-        return when (name.toLowerCase()) {
-            SINGLE.name -> {
+        return when (anootationNale) {
+            SINGLE.annotationName -> {
                 val createdAtStart: Boolean =
                     annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean?
                         ?: false
@@ -92,7 +92,7 @@ class ModuleScanner(
                     bindings = binds?.map { it.declaration } ?: emptyList()
                 )
             }
-            FACTORY.name -> {
+            FACTORY.annotationName -> {
                 KoinMetaData.Definition.FunctionDeclarationDefinition.Factory(
                     packageName = packageName,
                     qualifier = qualifier,
@@ -101,7 +101,7 @@ class ModuleScanner(
                     bindings = binds?.map { it.declaration } ?: emptyList()
                 )
             }
-            VIEWMODEL.name -> {
+            KOIN_VIEWMODEL.annotationName -> {
                 KoinMetaData.Definition.FunctionDeclarationDefinition.ViewModel(
                     packageName = packageName,
                     qualifier = qualifier,

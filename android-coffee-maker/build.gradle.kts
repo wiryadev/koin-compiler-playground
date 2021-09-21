@@ -30,14 +30,26 @@ android {
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
+
+    // to use KSP generated Code
+    applicationVariants.all {
+        val variantName = name
+        sourceSets {
+            getByName("main") {
+                java.srcDir(File("build/generated/ksp/$variantName/kotlin"))
+            }
+        }
+    }
 }
 
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("io.insert-koin:koin-android:$koinVersion")
+
     implementation(project(":koin-annotations"))
     ksp(project(":koin-compiler"))
-    implementation(project(":coffee-maker2"))
+
+    implementation(project(":coffee-maker"))
 
     implementation ("androidx.appcompat:appcompat:$appcompatVersion")
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
