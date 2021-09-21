@@ -1,10 +1,12 @@
-package metadata
+package scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.validate
+import metadata.DEFINITION_ANNOTATION_LIST_TYPES
+import metadata.KoinMetaData
 import org.koin.core.annotation.Module
 import kotlin.reflect.KClass
 
@@ -48,7 +50,7 @@ class KoinMetaDataScanner(
         // component scan
         logger.warn("scan definitions ...")
 
-        val definitions = DEFINITION_ANNOTATION_LIST.flatMap { a -> resolver.scanDefinition(a) { d -> componentMetadataScanner.createDefinition(d) } }
+        val definitions = DEFINITION_ANNOTATION_LIST_TYPES.flatMap { a -> resolver.scanDefinition(a) { d -> componentMetadataScanner.createDefinition(d) } }
 
         definitions.forEach { addToModule(it, defaultModule) }
         return definitions

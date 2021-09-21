@@ -1,15 +1,14 @@
 package generator
 
-import DEFAULT_MODULE_FOOTER
-import DEFAULT_MODULE_HEADER
 import appendText
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
 import generateClassDeclarationDefinition
 import generateClassModule
+import generateDefaultModuleForDefinitions
+import generateFieldModule
 import metadata.KoinMetaData
-import java.io.OutputStream
 
 class KoinCodeGenerator(
     val codeGenerator: CodeGenerator,
@@ -56,37 +55,14 @@ class KoinCodeGenerator(
         }
     }
 
-    fun generateDefaultDefinitions(
+    fun generateDefaultModule(
         definitions: List<KoinMetaData.Definition>
     ) {
-        logger.warn("generate default module")
-        definitions.forEachIndexed { index, def ->
-            if (index == 0) {
-                codeGenerator.getDefaultFile().apply {
-                    appendText(DEFAULT_MODULE_HEADER)
-                }
-            }
-            logger.warn("generate $def")
-            if (def is KoinMetaData.Definition.ClassDeclarationDefinition) {
-                codeGenerator.getDefaultFile().generateClassDeclarationDefinition(def)
-            }
-            if (index == definitions.size - 1) {
-                codeGenerator.getDefaultFile().apply {
-                    appendText(DEFAULT_MODULE_FOOTER)
-                }
-            }
-        }
-    }
-
-    private fun OutputStream.generateFieldModule(module: KoinMetaData.Module) {
-        module.definitions.filterIsInstance<KoinMetaData.Definition.ClassDeclarationDefinition>().forEach { def ->
-            logger.warn("generate $def")
-            generateClassDeclarationDefinition(def)
-        }
+        generateDefaultModuleForDefinitions(definitions)
     }
 
     companion object {
-        lateinit var LOGGER : KSPLogger
+        lateinit var LOGGER: KSPLogger
             private set
     }
 }

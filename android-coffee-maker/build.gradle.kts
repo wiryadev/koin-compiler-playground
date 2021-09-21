@@ -34,7 +34,7 @@ android {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation("io.insert-koin:koin-core:$koinVersion")
+    implementation("io.insert-koin:koin-android:$koinVersion")
     implementation(project(":koin-annotations"))
     ksp(project(":koin-compiler"))
     implementation(project(":coffee-maker2"))

@@ -2,7 +2,7 @@ import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
 import generator.KoinCodeGenerator
 import metadata.KoinMetaData
-import metadata.KoinMetaDataScanner
+import scanner.KoinMetaDataScanner
 
 class BuilderProcessor(
     val codeGenerator: CodeGenerator,
@@ -23,7 +23,7 @@ class BuilderProcessor(
         if (moduleMap.isNotEmpty()) {
             koinCodeGenerator.generateModules(moduleMap, defaultModule)
         } else {
-            koinCodeGenerator.generateDefaultDefinitions(definitions)
+            koinCodeGenerator.generateDefaultModule(definitions)
         }
         return emptyList()
     }

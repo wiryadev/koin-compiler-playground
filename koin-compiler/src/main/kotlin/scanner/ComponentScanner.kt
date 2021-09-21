@@ -1,9 +1,10 @@
-package metadata
+package scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSType
+import metadata.*
 
 class ComponentScanner(
     val logger: KSPLogger,
@@ -20,8 +21,8 @@ class ComponentScanner(
             val declaredBindingsTypes = annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
             val declaredBindings = declaredBindingsTypes?.map { it.declaration }
             val defaultBindings = ksClassDeclaration.superTypes.map { it.resolve().declaration }.toList()
-            when (DefinitionAnnotation.valueOf(name)) {
-                DefinitionAnnotation.Single -> {
+            when (name.toLowerCase()) {
+                SINGLE.name -> {
                     val createdAtStart: Boolean = annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean? ?: false
                     val allBindings = if (declaredBindings?.isNotEmpty() == true) declaredBindings else defaultBindings
                     logger.warn("definition(class) bindings -> $allBindings", element)
@@ -35,7 +36,7 @@ class ComponentScanner(
                         createdAtStart = createdAtStart
                     )
                 }
-                DefinitionAnnotation.Factory -> {
+                FACTORY.name -> {
                     KoinMetaData.Definition.ClassDeclarationDefinition.Factory(
                         packageName = packageName,
                         qualifier = qualifier,
@@ -45,7 +46,7 @@ class ComponentScanner(
                         bindings = declaredBindings ?: defaultBindings
                     )
                 }
-                DefinitionAnnotation.ViewModel -> {
+                VIEWMODEL.name -> {
                     KoinMetaData.Definition.ClassDeclarationDefinition.ViewModel(
                         packageName = packageName,
                         qualifier = qualifier,
@@ -55,6 +56,7 @@ class ComponentScanner(
                         bindings = declaredBindings ?: defaultBindings
                     )
                 }
+                else -> error("Unknown annotation type: $name")
             }
         } ?: error("Can't create definition found for $element")
     }

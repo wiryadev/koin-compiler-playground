@@ -280,20 +280,22 @@ Class Module ✅
 - Component Scan ✅
 - Class modules in same packe, but different component scan ✅
 
-Other keywords
+- Keywords extension & Dynamic import
 - Android Keywords
     - @ViewModel
     - @Fragment
     - @Worker
   
-Parameter Injection (@Param)
+Parameter Injection (@Param) - it.getParam()
 - Ctor
 - Fun
 
-Property (@Property)
-- getProperty(key) <T>
+Property (@Property) - getProperty(key)
+- Ctor
+- Fun
 
 Scope Structure (@Scope)
+- List all scopes structures and prepare for generation
 - @Scope on a type T -> generated scoped { T } in given scope  
 - except if tagged @Factory, @ViewModel or any kind of factory component
 

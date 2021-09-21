@@ -1,7 +1,8 @@
-package metadata
+package scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
+import metadata.*
 
 class ModuleScanner(
     val logger: KSPLogger
@@ -26,11 +27,7 @@ class ModuleScanner(
 
         val annotatedFunctions = declaration.getAllFunctions()
             .filter {
-                it.annotations.map { a -> a.shortName.asString() }.any { a ->
-                    DefinitionAnnotation.isValidAnnotation(
-                        a
-                    )
-                }
+                it.annotations.map { a -> a.shortName.asString() }.any { a -> isValidAnnotation(a) }
             }
             .toList()
 
@@ -80,8 +77,8 @@ class ModuleScanner(
         val binds = annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
         logger.warn("definition(function) -> binds=$binds", annotation)
 
-        return when (DefinitionAnnotation.valueOf(name)) {
-            DefinitionAnnotation.Single -> {
+        return when (name.toLowerCase()) {
+            SINGLE.name -> {
                 val createdAtStart: Boolean =
                     annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean?
                         ?: false
@@ -95,8 +92,17 @@ class ModuleScanner(
                     bindings = binds?.map { it.declaration } ?: emptyList()
                 )
             }
-            DefinitionAnnotation.Factory -> {
+            FACTORY.name -> {
                 KoinMetaData.Definition.FunctionDeclarationDefinition.Factory(
+                    packageName = packageName,
+                    qualifier = qualifier,
+                    functionName = functionName,
+                    functionParameters = ksFunctionDeclaration.parameters.map { KoinMetaData.ConstructorParameter() },
+                    bindings = binds?.map { it.declaration } ?: emptyList()
+                )
+            }
+            VIEWMODEL.name -> {
+                KoinMetaData.Definition.FunctionDeclarationDefinition.ViewModel(
                     packageName = packageName,
                     qualifier = qualifier,
                     functionName = functionName,

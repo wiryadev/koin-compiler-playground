@@ -2,11 +2,10 @@ package metadata
 
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSAnnotation
-import org.koin.core.qualifier.StringQualifier
 
 fun KSAnnotated.getDefinitionAnnotation(): Pair<String, KSAnnotation>? {
     return try {
-        val a = annotations.firstOrNull { a -> DefinitionAnnotation.isValidAnnotation(a.shortName.asString()) }
+        val a = annotations.firstOrNull { a -> isValidAnnotation(a.shortName.asString()) }
         a?.let { Pair(a.shortName.asString(),a) }
     } catch (e: Exception) {
         null

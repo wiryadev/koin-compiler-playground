@@ -26,7 +26,7 @@ sealed class KoinMetaData {
     sealed class Definition(
         val packageName: String,
         val qualifier : String? = null,
-        val keyword: String,
+        val keyword: DefinitionAnnotation,
         val bindings: List<KSDeclaration>,
         val isAndroidDefinition : Boolean = false
     ) : KoinMetaData() {
@@ -34,7 +34,7 @@ sealed class KoinMetaData {
         sealed class FunctionDeclarationDefinition(
             packageName: String,
             qualifier : String?,
-            keyword: String,
+            keyword: DefinitionAnnotation,
             val functionName: String,
             val parameters: List<ConstructorParameter> = emptyList(),
             bindings: List<KSDeclaration>
@@ -47,7 +47,7 @@ sealed class KoinMetaData {
                 functionParameters: List<ConstructorParameter> = emptyList(),
                 val createdAtStart : Boolean = false,
                 bindings: List<KSDeclaration>
-            ) : FunctionDeclarationDefinition(packageName, qualifier,"single", functionName, functionParameters, bindings)
+            ) : FunctionDeclarationDefinition(packageName, qualifier, SINGLE, functionName, functionParameters, bindings)
 
             open class Factory(
                 packageName: String,
@@ -55,7 +55,7 @@ sealed class KoinMetaData {
                 functionName: String,
                 functionParameters: List<ConstructorParameter> = emptyList(),
                 bindings: List<KSDeclaration>,
-                _keyword : String = "factory"
+                _keyword : DefinitionAnnotation = FACTORY
             ) : FunctionDeclarationDefinition(packageName, qualifier,_keyword, functionName, functionParameters, bindings)
 
             class ViewModel(
@@ -64,14 +64,14 @@ sealed class KoinMetaData {
                 functionName: String,
                 functionParameters: List<ConstructorParameter> = emptyList(),
                 bindings: List<KSDeclaration>,
-                _keyword : String = "org.koin.androidx.viewmodel.dsl.viewModel"
+                _keyword : DefinitionAnnotation = VIEWMODEL
             ) : Factory(packageName, qualifier, functionName, functionParameters, bindings, _keyword)
         }
 
         sealed class ClassDeclarationDefinition(
             packageName: String,
             qualifier : String?,
-            keyword: String,
+            keyword: DefinitionAnnotation,
             val className: String,
             val constructorParameters: List<ConstructorParameter> = emptyList(),
             bindings: List<KSDeclaration>,
@@ -84,7 +84,7 @@ sealed class KoinMetaData {
                 constructorParameters: List<ConstructorParameter> = emptyList(),
                 val createdAtStart : Boolean,
                 bindings: List<KSDeclaration>
-            ) : ClassDeclarationDefinition(packageName, qualifier,"single", className, constructorParameters, bindings)
+            ) : ClassDeclarationDefinition(packageName, qualifier, SINGLE, className, constructorParameters, bindings)
 
             open class Factory(
                 packageName: String,
@@ -92,7 +92,7 @@ sealed class KoinMetaData {
                 className: String,
                 constructorParameters: List<ConstructorParameter> = emptyList(),
                 bindings: List<KSDeclaration>,
-                _keyword : String = "factory",
+                _keyword : DefinitionAnnotation = FACTORY,
                 _isAndroidDefinition : Boolean = false
             ) : ClassDeclarationDefinition(packageName, qualifier,_keyword, className, constructorParameters, bindings)
 
@@ -102,7 +102,7 @@ sealed class KoinMetaData {
                 className: String,
                 constructorParameters: List<ConstructorParameter> = emptyList(),
                 bindings: List<KSDeclaration>,
-                _keyword : String = "org.koin.androidx.viewmodel.dsl.viewModel",
+                _keyword : DefinitionAnnotation = VIEWMODEL,
             ) : Factory(packageName, qualifier, className, constructorParameters, bindings, _keyword)
         }
     }
