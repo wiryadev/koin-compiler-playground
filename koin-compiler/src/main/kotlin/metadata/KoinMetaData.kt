@@ -93,7 +93,6 @@ sealed class KoinMetaData {
                 constructorParameters: List<ConstructorParameter> = emptyList(),
                 bindings: List<KSDeclaration>,
                 _keyword : DefinitionAnnotation = FACTORY,
-                _isAndroidDefinition : Boolean = false
             ) : ClassDeclarationDefinition(packageName, qualifier,_keyword, className, constructorParameters, bindings)
 
             class ViewModel(
@@ -111,12 +110,9 @@ sealed class KoinMetaData {
         FIELD, CLASS
     }
 
-    data class ConstructorParameter(
-        val qualifier: String? = null,
-        val type: ConstructorParameterType = ConstructorParameterType.DEPENDENCY
-    )
-
-    enum class ConstructorParameterType {
-        DEPENDENCY, PARAMETER_INJECT
+    sealed class ConstructorParameter {
+        data class Dependency(val value : String? = null) : ConstructorParameter()
+        data class ParameterInject(val value : String? = null) : ConstructorParameter()
+        data class Property(val value : String? = null) : ConstructorParameter()
     }
 }

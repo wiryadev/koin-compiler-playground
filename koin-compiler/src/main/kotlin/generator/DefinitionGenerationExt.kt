@@ -21,7 +21,7 @@ fun OutputStream.generateFunctionDeclarationDefinition(
 fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition.ClassDeclarationDefinition) {
     LOGGER.warn("generate $def")
     val param =
-        if (def.constructorParameters.filter { it.type == KoinMetaData.ConstructorParameterType.PARAMETER_INJECT }
+        if (def.constructorParameters.filter { it is KoinMetaData.ConstructorParameter.ParameterInject }
                 .isEmpty()) "" else " params ->"
     val ctor = generateClassConstructor(def.constructorParameters)
     val binds = generateBindings(def.bindings)
@@ -57,6 +57,10 @@ fun generateBinding(declaration: KSDeclaration): String {
 
 fun generateClassConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
     return constructorParameters.joinToString(prefix = "(", separator = ",", postfix = ")") {
-        if (it.type == KoinMetaData.ConstructorParameterType.DEPENDENCY) "get()" else "params.get()"
+        when (it) {
+            is KoinMetaData.ConstructorParameter.Dependency -> "get()" // value -> qualifier = StringQualifier("\"${it.value}\"")
+            is KoinMetaData.ConstructorParameter.ParameterInject -> "params.get()"
+            is KoinMetaData.ConstructorParameter.Property -> "getProperty(\"${it.value}\")"
+        }
     }
 }

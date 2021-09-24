@@ -4,6 +4,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.KSValueParameter
 import metadata.*
 
 class ComponentScanner(
@@ -24,6 +25,8 @@ class ComponentScanner(
             val defaultBindings = ksClassDeclaration.superTypes.map { it.resolve().declaration }.toList()
             val allBindings = if (declaredBindings?.isNotEmpty() == true) declaredBindings else defaultBindings
             logger.warn("definition(class) bindings -> $allBindings", element)
+
+            val ctorParams = ksClassDeclaration.primaryConstructor?.parameters?.getConstructorParameters()
             when (annotationName) {
                 SINGLE.annotationName -> {
                     val createdAtStart: Boolean = annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean? ?: false
@@ -31,7 +34,7 @@ class ComponentScanner(
                         packageName = packageName,
                         qualifier = qualifier,
                         className = className,
-                        constructorParameters = ksClassDeclaration.primaryConstructor?.parameters?.map { KoinMetaData.ConstructorParameter() }
+                        constructorParameters = ctorParams
                             ?: emptyList(),
                         bindings = allBindings,
                         createdAtStart = createdAtStart
@@ -42,7 +45,7 @@ class ComponentScanner(
                         packageName = packageName,
                         qualifier = qualifier,
                         className = className,
-                        constructorParameters = ksClassDeclaration.primaryConstructor?.parameters?.map { KoinMetaData.ConstructorParameter() }
+                        constructorParameters = ctorParams
                             ?: emptyList(),
                         bindings = declaredBindings ?: defaultBindings
                     )
@@ -52,7 +55,7 @@ class ComponentScanner(
                         packageName = packageName,
                         qualifier = qualifier,
                         className = className,
-                        constructorParameters = ksClassDeclaration.primaryConstructor?.parameters?.map { KoinMetaData.ConstructorParameter() }
+                        constructorParameters = ctorParams
                             ?: emptyList(),
                         bindings = declaredBindings ?: defaultBindings
                     )
@@ -62,3 +65,9 @@ class ComponentScanner(
         } ?: error("No valid definition annotation found for $element")
     }
 }
+
+fun List<KSValueParameter>.getConstructorParameters() : List<KoinMetaData.ConstructorParameter>{
+    return map { param -> getConstructorParameter(param) }
+}
+
+private fun getConstructorParameter(param: KSValueParameter) = KoinMetaData.ConstructorParameter.Dependency()

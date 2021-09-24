@@ -56,7 +56,6 @@ class ModuleScanner(
 
         return returnedType?.let {
             val functionName = ksFunctionDeclaration.simpleName.asString()
-
             element.getDefinitionAnnotation()?.let { (annotationName, annotation) ->
                 declareDefinition(annotationName, annotation, packageName, qualifier, functionName, ksFunctionDeclaration)
             }
@@ -77,6 +76,7 @@ class ModuleScanner(
         val binds = annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
         logger.warn("definition(function) -> binds=$binds", annotation)
 
+        val functionParameters = ksFunctionDeclaration.parameters.getConstructorParameters()
         return when (anootationNale) {
             SINGLE.annotationName -> {
                 val createdAtStart: Boolean =
@@ -87,7 +87,7 @@ class ModuleScanner(
                     packageName = packageName,
                     qualifier = qualifier,
                     functionName = functionName,
-                    functionParameters = ksFunctionDeclaration.parameters.map { KoinMetaData.ConstructorParameter() },
+                    functionParameters = functionParameters,
                     createdAtStart = createdAtStart,
                     bindings = binds?.map { it.declaration } ?: emptyList()
                 )
@@ -97,7 +97,7 @@ class ModuleScanner(
                     packageName = packageName,
                     qualifier = qualifier,
                     functionName = functionName,
-                    functionParameters = ksFunctionDeclaration.parameters.map { KoinMetaData.ConstructorParameter() },
+                    functionParameters = functionParameters,
                     bindings = binds?.map { it.declaration } ?: emptyList()
                 )
             }
@@ -106,7 +106,7 @@ class ModuleScanner(
                     packageName = packageName,
                     qualifier = qualifier,
                     functionName = functionName,
-                    functionParameters = ksFunctionDeclaration.parameters.map { KoinMetaData.ConstructorParameter() },
+                    functionParameters = functionParameters,
                     bindings = binds?.map { it.declaration } ?: emptyList()
                 )
             }
