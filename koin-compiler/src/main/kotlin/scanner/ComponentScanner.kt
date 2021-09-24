@@ -27,6 +27,7 @@ class ComponentScanner(
             logger.warn("definition(class) bindings -> $allBindings", element)
 
             val ctorParams = ksClassDeclaration.primaryConstructor?.parameters?.getConstructorParameters()
+            logger.warn("definition(class) ctor -> $ctorParams", element)
             when (annotationName) {
                 SINGLE.annotationName -> {
                     val createdAtStart: Boolean = annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean? ?: false
@@ -65,9 +66,3 @@ class ComponentScanner(
         } ?: error("No valid definition annotation found for $element")
     }
 }
-
-fun List<KSValueParameter>.getConstructorParameters() : List<KoinMetaData.ConstructorParameter>{
-    return map { param -> getConstructorParameter(param) }
-}
-
-private fun getConstructorParameter(param: KSValueParameter) = KoinMetaData.ConstructorParameter.Dependency()

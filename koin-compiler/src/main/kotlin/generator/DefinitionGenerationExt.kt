@@ -8,21 +8,20 @@ fun OutputStream.generateFunctionDeclarationDefinition(
     def: KoinMetaData.Definition.FunctionDeclarationDefinition
 ) {
     LOGGER.warn("generate $def")
+    val param = def.parameters.generateParamFunction()
     val ctor = generateClassConstructor(def.parameters)
     val binds = generateBindings(def.bindings)
     val qualifier = def.qualifier.generateQualifier()
     val createAtStart = if (def is KoinMetaData.Definition.FunctionDeclarationDefinition.Single){
         if (def.createdAtStart) CREATED_AT_START else ""
     } else ""
-    appendText("\n\t\t\t\t${def.keyword.keyword}($qualifier$createAtStart) { moduleInstance.${def.functionName}$ctor } $binds")
+    appendText("\n\t\t\t\t${def.keyword.keyword}($qualifier$createAtStart) { ${param}moduleInstance.${def.functionName}$ctor } $binds")
 }
 
 
 fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition.ClassDeclarationDefinition) {
     LOGGER.warn("generate $def")
-    val param =
-        if (def.constructorParameters.filter { it is KoinMetaData.ConstructorParameter.ParameterInject }
-                .isEmpty()) "" else " params ->"
+    val param = def.constructorParameters.generateParamFunction()
     val ctor = generateClassConstructor(def.constructorParameters)
     val binds = generateBindings(def.bindings)
     val qualifier = def.qualifier.generateQualifier()
@@ -33,6 +32,10 @@ fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition
 }
 
 const val CREATED_AT_START=",createdAtStart=true"
+
+fun List<KoinMetaData.ConstructorParameter>.generateParamFunction() : String{
+    return if (any { it is KoinMetaData.ConstructorParameter.ParameterInject }) "params -> " else ""
+}
 
 fun String?.generateQualifier():String = when {
     this == "\"null\"" -> "qualifier=null"
@@ -56,11 +59,16 @@ fun generateBinding(declaration: KSDeclaration): String {
 }
 
 fun generateClassConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
-    return constructorParameters.joinToString(prefix = "(", separator = ",", postfix = ")") {
-        when (it) {
-            is KoinMetaData.ConstructorParameter.Dependency -> "get()" // value -> qualifier = StringQualifier("\"${it.value}\"")
+    LOGGER.warn("generate ctor ...")
+    return constructorParameters.joinToString(prefix = "(", separator = ",", postfix = ")") { ctorParam ->
+        LOGGER.warn("generate ctor: $ctorParam")
+        when (ctorParam) {
+            is KoinMetaData.ConstructorParameter.Dependency -> {
+                val qualifier = ctorParam.value?.let { "qualifier=StringQualifier(\"${it}\")" } ?: ""
+                "get($qualifier)" // value -> qualifier =
+            }
             is KoinMetaData.ConstructorParameter.ParameterInject -> "params.get()"
-            is KoinMetaData.ConstructorParameter.Property -> "getProperty(\"${it.value}\")"
+            is KoinMetaData.ConstructorParameter.Property -> "getProperty(\"${ctorParam.value}\")"
         }
     }
 }

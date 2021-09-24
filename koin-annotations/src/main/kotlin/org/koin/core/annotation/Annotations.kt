@@ -7,20 +7,17 @@ annotation class Single(val binds: Array<KClass<*>> = [], val createdAtStart: Bo
 @Target(AnnotationTarget.CLASS,AnnotationTarget.FUNCTION)
 annotation class Factory(val binds: Array<KClass<*>> = [])
 
-
-@Target(AnnotationTarget.CLASS)
-annotation class Scope(val value: String = "")
 @Target(AnnotationTarget.CLASS,AnnotationTarget.FUNCTION)
-annotation class ScopedIn(val value: KClass<*>, val binds: Array<KClass<*>> = [])
+annotation class Scope(val value: KClass<*>, val binds: Array<KClass<*>> = [])
 
 @Target(AnnotationTarget.CLASS,AnnotationTarget.FUNCTION,AnnotationTarget.VALUE_PARAMETER)
-annotation class Qualifier(val value: String = "")
+annotation class Qualifier(val value: String)
 
 @Target(AnnotationTarget.VALUE_PARAMETER)
-annotation class Param()
+annotation class InjectedParam()
 
 @Target(AnnotationTarget.VALUE_PARAMETER)
-annotation class Property(val value: String = "")
+annotation class Property(val value: String)
 
 @Target(AnnotationTarget.CLASS)
 annotation class Module()

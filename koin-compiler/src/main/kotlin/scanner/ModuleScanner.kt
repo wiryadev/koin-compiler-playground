@@ -77,6 +77,7 @@ class ModuleScanner(
         logger.warn("definition(function) -> binds=$binds", annotation)
 
         val functionParameters = ksFunctionDeclaration.parameters.getConstructorParameters()
+        logger.warn("definition(function) ctor -> $functionParameters", annotation)
         return when (anootationNale) {
             SINGLE.annotationName -> {
                 val createdAtStart: Boolean =

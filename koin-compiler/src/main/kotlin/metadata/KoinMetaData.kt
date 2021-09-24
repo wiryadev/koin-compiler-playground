@@ -112,7 +112,7 @@ sealed class KoinMetaData {
 
     sealed class ConstructorParameter {
         data class Dependency(val value : String? = null) : ConstructorParameter()
-        data class ParameterInject(val value : String? = null) : ConstructorParameter()
+        object ParameterInject : ConstructorParameter()
         data class Property(val value : String? = null) : ConstructorParameter()
     }
 }
