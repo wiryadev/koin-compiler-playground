@@ -56,21 +56,29 @@ class ModuleScanner(
 
         return returnedType?.let {
             val functionName = ksFunctionDeclaration.simpleName.asString()
-            element.getDefinitionAnnotation()?.let { (annotationName, annotation) ->
-                declareDefinition(annotationName, annotation, packageName, qualifier, functionName, ksFunctionDeclaration)
+
+            val annotations = element.getKoinAnnotations()
+            val scopeAnnotation = annotations.getScopeAnnotation()
+
+            return if (scopeAnnotation != null){
+                declareDefinition(scopeAnnotation.first, scopeAnnotation.second, packageName, qualifier, functionName, ksFunctionDeclaration)
+            } else {
+                annotations.firstNotNullOf { (annotationName, annotation) ->
+                    declareDefinition(annotationName, annotation, packageName, qualifier, functionName, ksFunctionDeclaration)
+                }
             }
         }
     }
 
     private fun declareDefinition(
-        anootationNale: String,
+        annotationName: String,
         annotation: KSAnnotation,
         packageName: String,
         qualifier: String?,
         functionName: String,
         ksFunctionDeclaration: KSFunctionDeclaration
     ): KoinMetaData.Definition.FunctionDeclarationDefinition? {
-        logger.warn("definition(function) -> kind $anootationNale", annotation)
+        logger.warn("definition(function) -> kind $annotationName", annotation)
         logger.warn("definition(function) -> kind ${annotation.arguments}", annotation)
 
         val binds = annotation.arguments.firstOrNull { it.name?.asString() == "binds" }?.value as? List<KSType>?
@@ -78,7 +86,7 @@ class ModuleScanner(
 
         val functionParameters = ksFunctionDeclaration.parameters.getConstructorParameters()
         logger.warn("definition(function) ctor -> $functionParameters", annotation)
-        return when (anootationNale) {
+        return when (annotationName) {
             SINGLE.annotationName -> {
                 val createdAtStart: Boolean =
                     annotation.arguments.firstOrNull { it.name?.asString() == "createdAtStart" }?.value as Boolean?
@@ -109,6 +117,19 @@ class ModuleScanner(
                     functionName = functionName,
                     functionParameters = functionParameters,
                     bindings = binds?.map { it.declaration } ?: emptyList()
+                )
+            }
+            SCOPE.annotationName -> {
+                //TODO Any other annotation?
+                val scopeData : KoinMetaData.Scope = annotation.arguments.getScope()
+                logger.warn("definition(function) -> scope $scopeData", annotation)
+                KoinMetaData.Definition.FunctionDeclarationDefinition.Scope(
+                    packageName = packageName,
+                    qualifier = qualifier,
+                    functionName = functionName,
+                    functionParameters = functionParameters,
+                    bindings = binds?.map { it.declaration } ?: emptyList(),
+                    scope = scopeData
                 )
             }
             else -> null

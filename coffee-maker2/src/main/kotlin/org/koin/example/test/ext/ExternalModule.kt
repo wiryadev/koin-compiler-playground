@@ -1,4 +1,4 @@
-package org.koin.example.test
+package org.koin.example.test.ext
 
 import org.koin.core.annotation.*
 
@@ -15,7 +15,7 @@ class PropertyComponent(@Property("prop_id") val id : String)
 class PropertyComponent2(val id : String)
 
 @Module
-@ComponentScan
+@ComponentScan("org.koin.example.test.ext")
 class ExternalModule {
 
     @Single(createdAtStart = true)

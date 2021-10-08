@@ -6,6 +6,7 @@ import org.koin.core.context.startKoin
 import org.koin.core.logger.Level
 import org.koin.core.parameter.parametersOf
 import org.koin.core.qualifier.StringQualifier
+import org.koin.core.qualifier.named
 import org.koin.core.time.measureDuration
 import org.koin.example.coffee.CoffeeMaker
 import org.koin.example.di.CoffeeAppModule
@@ -13,6 +14,8 @@ import org.koin.example.di.CoffeeTesterModule
 import org.koin.example.tea.TeaModule
 import org.koin.example.tea.TeaPot
 import org.koin.example.test.*
+import org.koin.example.test.ext.*
+import org.koin.example.test.scope.*
 import org.koin.ksp.generated.*
 import org.koin.mp.KoinPlatformTools
 
@@ -34,6 +37,7 @@ fun main() {
             CoffeeTesterModule().module,
             TeaModule().module,
             ExternalModule().module,
+            ScopeModule().module
         )
     }
 
@@ -54,6 +58,13 @@ fun main() {
     koin.setProperty("prop_id",id)
     assert(koin.get<PropertyComponent>().id == id)
     assert(koin.get<PropertyComponent2>().id == id)
+
+    val myScope = MyScope()
+    val scopeS = koin.createScope("_ID1_", named<MyScope>(), myScope)
+    assert(myScope == scopeS.get<MyScopedComponent>().myScope)
+    assert(myScope == scopeS.get<MyScopedComponent2>().myScope)
+    koin.createScope("_ID2_", named(MY_SCOPE_SESSION))
+        .get<MyScopedSessionComponent>()
 }
 
 fun measureDuration(msg: String, code: () -> Unit): Double {

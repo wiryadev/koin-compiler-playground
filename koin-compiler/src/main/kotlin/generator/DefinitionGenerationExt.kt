@@ -4,15 +4,13 @@ import metadata.KoinMetaData
 import java.io.OutputStream
 
 
-fun OutputStream.generateFunctionDeclarationDefinition(
-    def: KoinMetaData.Definition.FunctionDeclarationDefinition
-) {
+fun OutputStream.generateFunctionDeclarationDefinition(def: KoinMetaData.Definition.FunctionDeclarationDefinition) {
     LOGGER.warn("generate $def")
     val param = def.parameters.generateParamFunction()
-    val ctor = generateClassConstructor(def.parameters)
+    val ctor = generateConstructor(def.parameters)
     val binds = generateBindings(def.bindings)
     val qualifier = def.qualifier.generateQualifier()
-    val createAtStart = if (def is KoinMetaData.Definition.FunctionDeclarationDefinition.Single){
+    val createAtStart = if (def is KoinMetaData.Definition.FunctionDeclarationDefinition.Single) {
         if (def.createdAtStart) CREATED_AT_START else ""
     } else ""
     appendText("\n\t\t\t\t${def.keyword.keyword}($qualifier$createAtStart) { ${param}moduleInstance.${def.functionName}$ctor } $binds")
@@ -22,22 +20,22 @@ fun OutputStream.generateFunctionDeclarationDefinition(
 fun OutputStream.generateClassDeclarationDefinition(def: KoinMetaData.Definition.ClassDeclarationDefinition) {
     LOGGER.warn("generate $def")
     val param = def.constructorParameters.generateParamFunction()
-    val ctor = generateClassConstructor(def.constructorParameters)
+    val ctor = generateConstructor(def.constructorParameters)
     val binds = generateBindings(def.bindings)
     val qualifier = def.qualifier.generateQualifier()
-    val createAtStart = if (def is KoinMetaData.Definition.ClassDeclarationDefinition.Single){
+    val createAtStart = if (def is KoinMetaData.Definition.ClassDeclarationDefinition.Single) {
         if (def.createdAtStart) CREATED_AT_START else ""
     } else ""
     appendText("\n\t\t\t\t${def.keyword.keyword}($qualifier$createAtStart) { $param${def.packageName}.${def.className}$ctor } $binds")
 }
 
-const val CREATED_AT_START=",createdAtStart=true"
+const val CREATED_AT_START = ",createdAtStart=true"
 
-fun List<KoinMetaData.ConstructorParameter>.generateParamFunction() : String{
+fun List<KoinMetaData.ConstructorParameter>.generateParamFunction(): String {
     return if (any { it is KoinMetaData.ConstructorParameter.ParameterInject }) "params -> " else ""
 }
 
-fun String?.generateQualifier():String = when {
+fun String?.generateQualifier(): String = when {
     this == "\"null\"" -> "qualifier=null"
     this == "null" -> "qualifier=null"
     !this.isNullOrBlank() -> "qualifier=StringQualifier(\"$this\")"
@@ -52,13 +50,25 @@ fun generateBindings(bindings: List<KSDeclaration>): String {
     }
 }
 
+fun generateScope(scope: KoinMetaData.Scope): String {
+    return when(scope){
+        is KoinMetaData.Scope.ClassScope -> {
+            val type = scope.type
+            val packageName = type.containingFile!!.packageName.asString()
+            val className = type.simpleName.asString()
+            "\n\t\t\t\tscope<$packageName.$className> {"
+        }
+        is KoinMetaData.Scope.StringScope -> "\n\t\t\t\tscope(named(\"${scope.name}\")) {"
+    }
+}
+
 fun generateBinding(declaration: KSDeclaration): String {
     val packageName = declaration.containingFile!!.packageName.asString()
     val className = declaration.simpleName.asString()
     return "$packageName.$className::class"
 }
 
-fun generateClassConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
+fun generateConstructor(constructorParameters: List<KoinMetaData.ConstructorParameter>): String {
     LOGGER.warn("generate ctor ...")
     return constructorParameters.joinToString(prefix = "(", separator = ",", postfix = ")") { ctorParam ->
         LOGGER.warn("generate ctor: $ctorParam")

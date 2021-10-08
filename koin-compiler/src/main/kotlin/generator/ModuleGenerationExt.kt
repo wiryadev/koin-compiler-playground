@@ -1,14 +1,26 @@
-import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.symbol.KSDeclaration
 import generator.*
-import generator.KoinCodeGenerator.Companion.LOGGER
 import metadata.KoinMetaData
 import java.io.OutputStream
 
 fun OutputStream.generateFieldModule(module: KoinMetaData.Module) {
-    module.definitions.filterIsInstance<KoinMetaData.Definition.ClassDeclarationDefinition>().forEach { def ->
+
+    val classDefinitions = module.definitions.filterIsInstance<KoinMetaData.Definition.ClassDeclarationDefinition>()
+    val standardDefinitions = classDefinitions.filter { it !is KoinMetaData.ScopeDefinition }
+    standardDefinitions.forEach { def ->
         generateClassDeclarationDefinition(def)
     }
+
+    val scopeDefinitions = classDefinitions.filter { it is KoinMetaData.ScopeDefinition }
+    scopeDefinitions.filterIsInstance<KoinMetaData.ScopeDefinition>()
+        .groupBy { it.scope }
+        .forEach { (scope, definitions) ->
+            KoinCodeGenerator.LOGGER.warn("generate scope $scope")
+            appendText(generateScope(scope))
+            definitions.forEach { generateClassDeclarationDefinition(it as KoinMetaData.Definition.ClassDeclarationDefinition) }
+
+            // close scope
+            appendText("\n\t\t\t\t}")
+        }
 }
 
 fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
@@ -17,16 +29,36 @@ fun generateClassModule(classFile: OutputStream, module: KoinMetaData.Module) {
 
     val generatedField = "${module.name}Module"
     val classModule = "${module.packageName}.${module.name}"
-
     classFile.appendText("\nval $generatedField = module {")
     classFile.appendText("\n\t\t\t\tval moduleInstance = $classModule()")
-    // Definitions here
-    module.definitions.filterIsInstance<KoinMetaData.Definition.FunctionDeclarationDefinition>().forEach { def ->
-        classFile.generateFunctionDeclarationDefinition(def)
+
+    val standardDefinitions = module.definitions.filter { it !is KoinMetaData.ScopeDefinition }
+
+    KoinCodeGenerator.LOGGER.warn("generate - definitions")
+
+    standardDefinitions.forEach {
+        when (it) {
+            is KoinMetaData.Definition.FunctionDeclarationDefinition -> classFile.generateFunctionDeclarationDefinition(it)
+            is KoinMetaData.Definition.ClassDeclarationDefinition -> classFile.generateClassDeclarationDefinition(it)
+        }
     }
-    module.definitions.filterIsInstance<KoinMetaData.Definition.ClassDeclarationDefinition>().forEach { def ->
-        classFile.generateClassDeclarationDefinition(def)
-    }
+
+    KoinCodeGenerator.LOGGER.warn("generate - scopes")
+    val scopeDefinitions = module.definitions.filter { it is KoinMetaData.ScopeDefinition }
+    scopeDefinitions.filterIsInstance<KoinMetaData.ScopeDefinition>().groupBy { it.scope }
+        .forEach { (scope, definitions) ->
+            KoinCodeGenerator.LOGGER.warn("generate - scope $scope")
+            classFile.appendText(generateScope(scope))
+            definitions.forEach {
+                when (it) {
+                    is KoinMetaData.Definition.FunctionDeclarationDefinition -> classFile.generateFunctionDeclarationDefinition(it)
+                    is KoinMetaData.Definition.ClassDeclarationDefinition -> classFile.generateClassDeclarationDefinition(it)
+                }
+            }
+            // close scope
+            classFile.appendText("\n\t\t\t\t}")
+        }
+
     classFile.appendText("\n}")
     classFile.appendText("\nval $classModule.module : org.koin.core.module.Module get() = $generatedField")
 
@@ -65,6 +97,6 @@ fun OutputStream.generateDefaultModuleFooter() {
     appendText(DEFAULT_MODULE_FOOTER)
 }
 
-private fun List<KoinMetaData.Definition>.generateImports() : String {
-    return mapNotNull { definition -> definition.keyword.import?.let { "import $it" } }.joinToString(separator = "\n",postfix = "\n")
+private fun List<KoinMetaData.Definition>.generateImports(): String {
+    return mapNotNull { definition -> definition.keyword.import?.let { "import $it" } }.joinToString(separator = "\n", postfix = "\n")
 }
