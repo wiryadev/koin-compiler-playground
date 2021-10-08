@@ -1,10 +1,9 @@
-import generator.*
-import metadata.KoinMetaData
+import org.koin.compiler.generator.*
+import org.koin.compiler.metadata.KoinMetaData
 import java.io.OutputStream
 
-fun OutputStream.generateFieldModule(module: KoinMetaData.Module) {
-
-    val classDefinitions = module.definitions.filterIsInstance<KoinMetaData.Definition.ClassDeclarationDefinition>()
+fun OutputStream.generateFieldModule(definitions: List<KoinMetaData.Definition>) {
+    val classDefinitions = definitions.filterIsInstance<KoinMetaData.Definition.ClassDeclarationDefinition>()
     val standardDefinitions = classDefinitions.filter { it !is KoinMetaData.ScopeDefinition }
     standardDefinitions.forEach { def ->
         generateClassDeclarationDefinition(def)
@@ -76,9 +75,7 @@ fun KoinCodeGenerator.generateDefaultModuleForDefinitions(
             }
         }
         logger.warn("generate $def")
-        if (def is KoinMetaData.Definition.ClassDeclarationDefinition) {
-            codeGenerator.getDefaultFile().generateClassDeclarationDefinition(def)
-        }
+        codeGenerator.getDefaultFile().generateFieldModule(definitions)
         if (index == definitions.size - 1) {
             codeGenerator.getDefaultFile().apply {
                 generateDefaultModuleFooter()

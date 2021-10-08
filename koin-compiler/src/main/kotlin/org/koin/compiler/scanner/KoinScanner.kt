@@ -1,12 +1,12 @@
-package scanner
+package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.validate
-import metadata.DEFINITION_ANNOTATION_LIST_TYPES
-import metadata.KoinMetaData
+import org.koin.compiler.metadata.DEFINITION_ANNOTATION_LIST_TYPES
+import org.koin.compiler.metadata.KoinMetaData
 import org.koin.core.annotation.Module
 import kotlin.reflect.KClass
 

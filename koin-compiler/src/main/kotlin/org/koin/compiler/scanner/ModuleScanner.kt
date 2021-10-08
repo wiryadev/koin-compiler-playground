@@ -1,8 +1,8 @@
-package scanner
+package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
-import metadata.*
+import org.koin.compiler.metadata.*
 
 class ModuleScanner(
     val logger: KSPLogger
@@ -12,6 +12,7 @@ class ModuleScanner(
         val declaration = (element as KSClassDeclaration)
         logger.warn("module(Class) -> $element", element)
         val modulePackage = declaration.containingFile?.packageName?.asString() ?: ""
+        logger.warn("module(Class) -> package: $modulePackage", element)
 
         val componentScan =
             getComponentScan(declaration)
@@ -35,7 +36,9 @@ class ModuleScanner(
         val definitions = annotatedFunctions.mapNotNull { addDefinition(it) }
         moduleMetadata.definitions += definitions
 
-        return ModuleIndex(componentScan?.packageName ?: modulePackage, moduleMetadata)
+        val moduleIndex = ModuleIndex(if (componentScan?.packageName?.isNotEmpty() == true) componentScan.packageName else modulePackage, moduleMetadata)
+        logger.warn("module(Class) index -> ${moduleIndex.first}")
+        return moduleIndex
     }
 
     private fun getComponentScan(declaration: KSClassDeclaration): KoinMetaData.Module.ComponentScan? {
@@ -61,10 +64,10 @@ class ModuleScanner(
             val scopeAnnotation = annotations.getScopeAnnotation()
 
             return if (scopeAnnotation != null){
-                declareDefinition(scopeAnnotation.first, scopeAnnotation.second, packageName, qualifier, functionName, ksFunctionDeclaration)
+                declareDefinition(scopeAnnotation.first, scopeAnnotation.second, packageName, qualifier, functionName, ksFunctionDeclaration, annotations)
             } else {
                 annotations.firstNotNullOf { (annotationName, annotation) ->
-                    declareDefinition(annotationName, annotation, packageName, qualifier, functionName, ksFunctionDeclaration)
+                    declareDefinition(annotationName, annotation, packageName, qualifier, functionName, ksFunctionDeclaration, annotations)
                 }
             }
         }
@@ -76,7 +79,8 @@ class ModuleScanner(
         packageName: String,
         qualifier: String?,
         functionName: String,
-        ksFunctionDeclaration: KSFunctionDeclaration
+        ksFunctionDeclaration: KSFunctionDeclaration,
+        annotations: Map<String, KSAnnotation> = emptyMap()
     ): KoinMetaData.Definition.FunctionDeclarationDefinition? {
         logger.warn("definition(function) -> kind $annotationName", annotation)
         logger.warn("definition(function) -> kind ${annotation.arguments}", annotation)

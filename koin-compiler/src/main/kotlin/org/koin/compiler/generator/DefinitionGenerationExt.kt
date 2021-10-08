@@ -1,6 +1,6 @@
 import com.google.devtools.ksp.symbol.KSDeclaration
-import generator.KoinCodeGenerator.Companion.LOGGER
-import metadata.KoinMetaData
+import org.koin.compiler.generator.KoinCodeGenerator.Companion.LOGGER
+import org.koin.compiler.metadata.KoinMetaData
 import java.io.OutputStream
 
 

@@ -1,4 +1,4 @@
-package metadata
+package org.koin.compiler.metadata
 
 import com.google.devtools.ksp.symbol.KSDeclaration
 
@@ -16,10 +16,7 @@ sealed class KoinMetaData {
         fun acceptDefinition(defPackageName: String): Boolean {
             return when {
                 componentScan == null -> false
-                componentScan.packageName.isNotEmpty() -> defPackageName.contains(
-                    componentScan.packageName,
-                    ignoreCase = true
-                )
+                componentScan.packageName.isNotEmpty() -> defPackageName.contains(componentScan.packageName, ignoreCase = true)
                 componentScan.packageName.isEmpty() -> defPackageName.contains(packageName, ignoreCase = true)
                 else -> false
             }

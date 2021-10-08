@@ -1,8 +1,8 @@
-package scanner
+package org.koin.compiler.scanner
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.*
-import metadata.*
+import org.koin.compiler.metadata.*
 
 class ComponentScanner(
     val logger: KSPLogger,

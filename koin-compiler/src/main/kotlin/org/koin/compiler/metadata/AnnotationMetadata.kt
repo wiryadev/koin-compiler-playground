@@ -1,4 +1,4 @@
-package metadata
+package org.koin.compiler.metadata
 
 import org.koin.android.annotation.KoinViewModel
 import org.koin.core.annotation.*

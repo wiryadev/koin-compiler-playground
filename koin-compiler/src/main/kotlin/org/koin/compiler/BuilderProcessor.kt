@@ -1,24 +1,27 @@
+package org.koin.compiler
+
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.KSAnnotated
-import generator.KoinCodeGenerator
-import metadata.KoinMetaData
-import scanner.KoinMetaDataScanner
+import org.koin.compiler.generator.KoinCodeGenerator
+import org.koin.compiler.metadata.KoinMetaData
+import org.koin.compiler.scanner.KoinMetaDataScanner
 
 class BuilderProcessor(
-    val codeGenerator: CodeGenerator,
-    val logger: KSPLogger
+    private val codeGenerator: CodeGenerator,
+    private val logger: KSPLogger
 ) : SymbolProcessor {
 
-    val koinCodeGenerator = KoinCodeGenerator(codeGenerator, logger)
-    val koinMetaDataScanner = KoinMetaDataScanner(logger)
+    private val koinCodeGenerator = KoinCodeGenerator(codeGenerator, logger)
+    private val koinMetaDataScanner = KoinMetaDataScanner(logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val defaultModule = KoinMetaData.Module(
             packageName = "",
             name = "defaultModule"
         )
-        logger.warn("Scan metadata ...")
+        logger.warn("Scan org.koin.compiler.metadata ...")
         val (moduleMap, definitions) = koinMetaDataScanner.scanAllMetaData(resolver, defaultModule)
+
         logger.warn("Code generation ...")
         if (moduleMap.isNotEmpty()) {
             koinCodeGenerator.generateModules(moduleMap, defaultModule)

@@ -1,7 +1,7 @@
-package metadata
+package org.koin.compiler.metadata
 
 import com.google.devtools.ksp.symbol.*
-import generator.KoinCodeGenerator
+import org.koin.compiler.generator.KoinCodeGenerator
 import org.koin.core.annotation.InjectedParam
 import org.koin.core.annotation.Property
 import org.koin.core.annotation.Qualifier

@@ -1,4 +1,4 @@
-package generator
+package org.koin.compiler.generator
 
 val DEFAULT_MODULE_HEADER = """
         package org.koin.ksp.generated

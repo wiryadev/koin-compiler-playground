@@ -1,1 +1,1 @@
-BuilderProcessorProvider
+org.koin.compiler.BuilderProcessorProvider

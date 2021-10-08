@@ -15,7 +15,7 @@ class PropertyComponent(@Property("prop_id") val id : String)
 class PropertyComponent2(val id : String)
 
 @Module
-@ComponentScan("org.koin.example.test.ext")
+@ComponentScan
 class ExternalModule {
 
     @Single(createdAtStart = true)

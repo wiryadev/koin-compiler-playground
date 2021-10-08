@@ -1,16 +1,14 @@
-package generator
+package org.koin.compiler.generator
 
-import appendText
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.KSPLogger
-import generateClassDeclarationDefinition
 import generateClassModule
 import generateDefaultModuleFooter
 import generateDefaultModuleForDefinitions
 import generateDefaultModuleHeader
 import generateFieldModule
-import metadata.KoinMetaData
+import org.koin.compiler.metadata.KoinMetaData
 
 class KoinCodeGenerator(
     val codeGenerator: CodeGenerator,
@@ -25,7 +23,7 @@ class KoinCodeGenerator(
         moduleMap: Map<String, KoinMetaData.Module>,
         defaultModule: KoinMetaData.Module
     ) {
-        logger.warn("generate modules ...")
+        logger.warn("generate ${moduleMap.size} modules ...")
         moduleMap.values.forEachIndexed { index, module ->
             if (index == 0) {
                 if (defaultModule.definitions.isNotEmpty()){
@@ -47,7 +45,7 @@ class KoinCodeGenerator(
         codeGenerator.getDefaultFile().let { defaultFile ->
             if (module.definitions.isNotEmpty()) {
                 when (module.type) {
-                    KoinMetaData.ModuleType.FIELD -> defaultFile.generateFieldModule(module)
+                    KoinMetaData.ModuleType.FIELD -> defaultFile.generateFieldModule(module.definitions)
                     KoinMetaData.ModuleType.CLASS -> {
                         val moduleFile = codeGenerator.getFile(fileName = "${module.name}Gen")
                         generateClassModule(moduleFile, module)

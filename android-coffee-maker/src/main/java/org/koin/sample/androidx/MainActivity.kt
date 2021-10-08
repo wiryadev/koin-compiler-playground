@@ -4,12 +4,15 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.core.parameter.parametersOf
 
 class MainActivity : AppCompatActivity() {
 
     // inject & ViewModel
     val coffeeViewModel : CoffeeViewModel by viewModel()
+    val myPresenter : MyPresenter by inject { parametersOf(this@MainActivity) }
 
     private val button : Button by lazy { findViewById(R.id.main_button) }
     private val textView : TextView by lazy { findViewById(R.id.main_text) }
@@ -25,5 +28,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         coffeeViewModel.coffeeMaker.brew()
+        assert(myPresenter.mainActivity == this)
     }
 }
