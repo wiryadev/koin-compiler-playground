@@ -302,7 +302,7 @@ Scope Structure (@Scope)
 - except if tagged @Factory, @ViewModel or any kind of factory component 🚧
 
 - Clean code 🚧
-- Incremental gen 🚧 
+
 
 
 

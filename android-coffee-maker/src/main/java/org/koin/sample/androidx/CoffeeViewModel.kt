@@ -12,3 +12,6 @@ class MyModule
 
 @KoinViewModel
 class CoffeeViewModel(val coffeeMaker : CoffeeMaker) : ViewModel()
+
+@KoinViewModel
+class TodoViewModel(val repository: Repository) : ViewModel()
